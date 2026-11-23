@@ -1,0 +1,450 @@
+{
+  "jobs": [
+    {
+      "id": "job_1795438953520_076176980e",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:02:33.521Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795438953520_076176980e_sample.webp",
+      "completedAt": "2026-11-23T13:02:33.817Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795438960199_d543103a06",
+      "originalName": "sample.obj",
+      "sourceExt": "obj",
+      "targetExt": "glb",
+      "category": "model3d",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 134,
+      "createdAt": "2026-11-23T13:02:40.200Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "Mesh3D Geometry Engine",
+      "outputSizeBytes": 728,
+      "outputName": "job_1795438960199_d543103a06_sample.glb",
+      "completedAt": "2026-11-23T13:02:40.204Z",
+      "previewKind": "mesh3d",
+      "details": {
+        "vertices": 6,
+        "faces": 8
+      }
+    },
+    {
+      "id": "job_1795438962416_68003d6561",
+      "batchId": "batch_1795438962326",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:02:42.416Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795438962416_68003d6561_sample.webp",
+      "completedAt": "2026-11-23T13:02:42.678Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795438962692_159c0b98d8",
+      "batchId": "batch_1795438962326",
+      "originalName": "sample.yaml",
+      "sourceExt": "yaml",
+      "targetExt": "json",
+      "category": "data",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 124,
+      "createdAt": "2026-11-23T13:02:42.692Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Structured Data Engine",
+      "outputSizeBytes": 201,
+      "outputName": "job_1795438962692_159c0b98d8_sample.json",
+      "completedAt": "2026-11-23T13:02:42.702Z",
+      "previewKind": "text",
+      "details": {
+        "records": 3
+      }
+    },
+    {
+      "id": "job_1795438962709_917e1751ee",
+      "batchId": "batch_1795438962326",
+      "originalName": "sample.srt",
+      "sourceExt": "srt",
+      "targetExt": "vtt",
+      "category": "subtitle",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 148,
+      "createdAt": "2026-11-23T13:02:42.709Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Subtitle Cue Engine",
+      "outputSizeBytes": 156,
+      "outputName": "job_1795438962709_917e1751ee_sample.vtt",
+      "completedAt": "2026-11-23T13:02:42.711Z",
+      "previewKind": "text",
+      "details": {
+        "cues": 2
+      }
+    },
+    {
+      "id": "job_1795439095744_0bb1064bc2",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:04:55.745Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795439095744_0bb1064bc2_sample.webp",
+      "completedAt": "2026-11-23T13:04:55.889Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795439102826_7da342d3ea",
+      "originalName": "sample.wav",
+      "sourceExt": "wav",
+      "targetExt": "mp3",
+      "category": "audio",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 352878,
+      "createdAt": "2026-11-23T13:05:02.826Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "FFmpeg 4.4",
+      "outputSizeBytes": 49572,
+      "outputName": "job_1795439102826_7da342d3ea_sample.mp3",
+      "completedAt": "2026-11-23T13:05:03.342Z",
+      "previewKind": "audio",
+      "details": {
+        "durationSec": 2.04,
+        "bitrateKbps": 195,
+        "audioCodec": "mp3",
+        "sampleRate": "44100 Hz",
+        "channels": "Stereo"
+      }
+    },
+    {
+      "id": "job_1795439104108_ca8525e587",
+      "originalName": "sample.docx",
+      "sourceExt": "docx",
+      "targetExt": "pdf",
+      "category": "document",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 9619,
+      "createdAt": "2026-11-23T13:05:04.109Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "PDFKit",
+      "outputSizeBytes": 1574,
+      "outputName": "job_1795439104108_ca8525e587_sample.pdf",
+      "completedAt": "2026-11-23T13:05:04.289Z",
+      "previewKind": "pdf"
+    },
+    {
+      "id": "job_1795440357621_d8c68e4b31",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:25:57.621Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795440357621_d8c68e4b31_sample.webp",
+      "completedAt": "2026-11-23T13:25:57.807Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795440596304_2f65e2ecfb",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:29:56.304Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795440596304_2f65e2ecfb_sample.webp",
+      "completedAt": "2026-11-23T13:29:56.501Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795440618995_9271269ce2",
+      "batchId": "batch_1795440618897",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:30:18.995Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795440618995_9271269ce2_sample.webp",
+      "completedAt": "2026-11-23T13:30:19.192Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795440619197_ab968f1e87",
+      "batchId": "batch_1795440618897",
+      "originalName": "sample.yaml",
+      "sourceExt": "yaml",
+      "targetExt": "json",
+      "category": "data",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 124,
+      "createdAt": "2026-11-23T13:30:19.197Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Structured Data Engine",
+      "outputSizeBytes": 201,
+      "outputName": "job_1795440619197_ab968f1e87_sample.json",
+      "completedAt": "2026-11-23T13:30:19.203Z",
+      "previewKind": "text",
+      "details": {
+        "records": 3
+      }
+    },
+    {
+      "id": "job_1795440619234_cebbe9d1cd",
+      "batchId": "batch_1795440618897",
+      "originalName": "sample.srt",
+      "sourceExt": "srt",
+      "targetExt": "vtt",
+      "category": "subtitle",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 148,
+      "createdAt": "2026-11-23T13:30:19.234Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Subtitle Cue Engine",
+      "outputSizeBytes": 156,
+      "outputName": "job_1795440619234_cebbe9d1cd_sample.vtt",
+      "completedAt": "2026-11-23T13:30:19.235Z",
+      "previewKind": "text",
+      "details": {
+        "cues": 2
+      }
+    },
+    {
+      "id": "job_1795440814915_0cddc7fc5f",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:33:34.915Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795440814915_0cddc7fc5f_sample.webp",
+      "completedAt": "2026-11-23T13:33:35.059Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795440860306_37d427deaf",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-23T13:34:20.306Z",
+      "options": {
+        "quality": 88,
+        "crf": 23,
+        "bitrate": "192k",
+        "stripMetadata": false
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795440860306_37d427deaf_sample.webp",
+      "completedAt": "2026-11-23T13:34:20.496Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    }
+  ],
+  "settings": {
+    "theme": "dark",
+    "defaultImageQuality": 88,
+    "defaultVideoCrf": 23,
+    "defaultAudioBitrate": "192k",
+    "stripMetadataByDefault": false,
+    "retentionMinutes": 60,
+    "maxUploadMb": 100,
+    "favoritePairs": [
+      "png->webp",
+      "heic->jpg",
+      "docx->pdf",
+      "wav->mp3",
+      "yaml->json",
+      "srt->vtt"
+    ],
+    "recentFormats": [
+      "webp",
+      "vtt",
+      "json",
+      "pdf",
+      "mp3",
+      "glb"
+    ],
+    "defaultOutputFormats": {
+      "image": "webp",
+      "document": "pdf",
+      "spreadsheet": "csv",
+      "audio": "mp3",
+      "video": "mp4",
+      "data": "json"
+    }
+  },
+  "lastCleanupAt": null
+}

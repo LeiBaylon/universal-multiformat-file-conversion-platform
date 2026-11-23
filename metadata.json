@@ -1,0 +1,6 @@
+{
+  "name": "Aether Convert — Universal File Conversion Platform",
+  "description": "An Apple-inspired Liquid Glass universal file conversion platform supporting images, documents, spreadsheets, presentations, audio, video, ebooks, archives, vectors, 3D models, fonts, subtitles, structured data, web assets, and scientific formats.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
