@@ -10,7 +10,7 @@ interface GlassSurfaceProps {
   interactiveLight?: boolean;
   className?: string;
   children: ReactNode;
-  as?: 'section' | 'div';
+  as?: 'section' | 'div' | 'article';
 }
 
 const TIER_CLASSES: Record<GlassTier, string> = {
@@ -69,6 +69,14 @@ export function GlassSurface({
       >
         {content}
       </motion.section>
+    );
+  }
+
+  if (as === 'article') {
+    return (
+      <article ref={ref as React.RefObject<HTMLElement>} onPointerMove={handlePointerMove} className={baseClass}>
+        {content}
+      </article>
     );
   }
 

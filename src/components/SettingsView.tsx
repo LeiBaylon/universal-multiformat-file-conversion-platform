@@ -1,6 +1,7 @@
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { ShieldCheck, Trash2 } from 'lucide-react';
-import type { StorageStats, UserSettings } from '../shared/types';
+import { Activity, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
+import type { StorageStats, SystemResourceStats, UserSettings } from '../shared/types';
 import { formatBytes } from '../utils/formatters';
 import { SPRING_SNAPPY } from '../utils/motion';
 import { GlassSurface } from './glass/GlassSurface';
@@ -79,8 +80,53 @@ const CATEGORY_OUTPUT_PRESETS: {
   },
 ];
 
+const ENGINE_LABELS: { key: string; label: string }[] = [
+  { key: 'sharp', label: 'Sharp (libvips)' },
+  { key: 'imglyIsnet', label: 'ISNet AI Segmentation' },
+  { key: 'imagemagick', label: 'ImageMagick' },
+  { key: 'ffmpeg', label: 'FFmpeg' },
+  { key: 'ghostscript', label: 'Ghostscript' },
+  { key: 'sevenZip', label: '7-Zip (p7zip)' },
+  { key: 'tar', label: 'GNU tar' },
+  { key: 'bzip2', label: 'BZip2' },
+  { key: 'xz', label: 'XZ / LZMA' },
+  { key: 'libreoffice', label: 'LibreOffice' },
+  { key: 'pandoc', label: 'Pandoc' },
+  { key: 'calibre', label: 'Calibre' },
+];
+
+function formatUptime(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m < 60) return `${m}m ${s}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
 export function SettingsView({ settings, storage, onUpdateSettings, onPurgeStorage }: SettingsViewProps) {
   const defaultsMap = settings.defaultOutputFormats || {};
+  const [resources, setResources] = useState<SystemResourceStats | null>(null);
+  const [loadingRes, setLoadingRes] = useState(false);
+
+  const fetchResources = useCallback(async () => {
+    setLoadingRes(true);
+    try {
+      const res = await fetch('/api/resources');
+      if (res.ok) {
+        const data = (await res.json()) as SystemResourceStats;
+        setResources(data);
+      }
+    } catch {
+      // ignore transient error
+    } finally {
+      setLoadingRes(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -198,6 +244,35 @@ export function SettingsView({ settings, storage, onUpdateSettings, onPurgeStora
           </div>
         </div>
 
+        <div className="pt-4 border-t border-black/10 dark:border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="default-naming-input" className="block text-xs text-[var(--text-muted)] mb-1.5">
+              Default Output Naming Pattern
+            </label>
+            <input
+              id="default-naming-input"
+              type="text"
+              value={settings.defaultNamingPattern || '{name}_processed'}
+              onChange={(e) => onUpdateSettings({ defaultNamingPattern: e.target.value })}
+              placeholder="{name}_processed"
+              className="w-full rounded-xl border border-[var(--control-border)] bg-[var(--input-bg)] px-3 py-2 text-xs font-mono text-[var(--text-primary)]"
+            />
+          </div>
+          <div>
+            <label htmlFor="default-dest-input" className="block text-xs text-[var(--text-muted)] mb-1.5">
+              Default Workspace Destination Folder
+            </label>
+            <input
+              id="default-dest-input"
+              type="text"
+              value={settings.defaultDestinationFolder || ''}
+              onChange={(e) => onUpdateSettings({ defaultDestinationFolder: e.target.value })}
+              placeholder="Leave blank for download queue"
+              className="w-full rounded-xl border border-[var(--control-border)] bg-[var(--input-bg)] px-3 py-2 text-xs text-[var(--text-primary)]"
+            />
+          </div>
+        </div>
+
         <div className="pt-3 border-t border-black/10 dark:border-white/10">
           <label className="flex items-center gap-2.5 text-xs text-[var(--text-soft)] cursor-pointer">
             <input
@@ -297,10 +372,89 @@ export function SettingsView({ settings, storage, onUpdateSettings, onPurgeStora
         </div>
       </section>
 
-      {/* Keyboard Shortcuts */}
+      {/* Live System Resource & Engine Monitor */}
+      <GlassSurface as="section" className="rounded-[22px] p-6 space-y-4 relative z-10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Activity className="w-4 h-4 text-[var(--text-primary)]" />
+            <div>
+              <h3 className="font-display text-sm font-semibold text-[var(--text-primary)]">
+                System Resource &amp; Engine Monitor
+              </h3>
+              <p className="text-xs text-[var(--text-muted)]">
+                Live worker memory, job telemetry, and verified server-side processing engines.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={fetchResources}
+            disabled={loadingRes}
+            className="glass-interactive inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] cursor-pointer whitespace-nowrap disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loadingRes ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-black/4 dark:bg-black/40 p-3.5">
+            <p className="text-[11px] text-[var(--text-muted)]">Memory RSS</p>
+            <p className="font-display text-lg font-semibold text-[var(--text-primary)] mt-1 tabular-nums">
+              {resources ? `${resources.memoryRssMb} MB` : '—'}
+            </p>
+          </div>
+          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-black/4 dark:bg-black/40 p-3.5">
+            <p className="text-[11px] text-[var(--text-muted)]">Worker Uptime</p>
+            <p className="font-display text-lg font-semibold text-[var(--text-primary)] mt-1 tabular-nums">
+              {resources ? formatUptime(resources.uptimeSec) : '—'}
+            </p>
+          </div>
+          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-black/4 dark:bg-black/40 p-3.5">
+            <p className="text-[11px] text-[var(--text-muted)]">Active Jobs</p>
+            <p className="font-display text-lg font-semibold text-[var(--text-primary)] mt-1 tabular-nums">
+              {resources ? resources.activeJobs : '—'}
+            </p>
+          </div>
+          <div className="rounded-xl border border-black/10 dark:border-white/10 bg-black/4 dark:bg-black/40 p-3.5">
+            <p className="text-[11px] text-[var(--text-muted)]">Session Jobs</p>
+            <p className="font-display text-lg font-semibold text-[var(--text-primary)] mt-1 tabular-nums">
+              {resources ? resources.totalJobs : '—'}
+            </p>
+          </div>
+        </div>
+
+        {resources?.engines && (
+          <div className="pt-2 border-t border-black/10 dark:border-white/10">
+            <p className="text-[11px] text-[var(--text-muted)] mb-2.5">Detected Processing Engines</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {ENGINE_LABELS.map((item) => {
+                const available = Boolean(resources.engines[item.key]);
+                return (
+                  <div
+                    key={item.key}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-black/8 dark:border-white/8 bg-black/3 dark:bg-black/30 px-2.5 py-1.5 text-[11px]"
+                  >
+                    <span className="text-[var(--text-soft)] truncate">{item.label}</span>
+                    <span
+                      className={`shrink-0 font-mono text-[10px] ${
+                        available ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] opacity-60'
+                      }`}
+                    >
+                      {available ? 'READY' : 'N/A'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </GlassSurface>
+
+      {/* Workspace Controls */}
       <GlassSurface as="section" className="rounded-[22px] p-6 relative z-10">
-        <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] mb-3">Keyboard Shortcuts</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+        <h3 className="font-display text-sm font-semibold text-[var(--text-primary)] mb-3">Interface Controls</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
           <div className="flex items-center justify-between py-1.5 border-b border-black/8 dark:border-white/8">
             <span className="text-[var(--text-muted)]">Global Format Search</span>
             <kbd className="font-mono text-[var(--text-primary)]">⌘K / Ctrl+K</kbd>
@@ -308,10 +462,6 @@ export function SettingsView({ settings, storage, onUpdateSettings, onPurgeStora
           <div className="flex items-center justify-between py-1.5 border-b border-black/8 dark:border-white/8">
             <span className="text-[var(--text-muted)]">Open File Picker</span>
             <kbd className="font-mono text-[var(--text-primary)]">⌘U / Ctrl+U</kbd>
-          </div>
-          <div className="flex items-center justify-between py-1.5 border-b border-black/8 dark:border-white/8">
-            <span className="text-[var(--text-muted)]">Switch Workspace Views</span>
-            <kbd className="font-mono text-[var(--text-primary)]">Alt + 1..6</kbd>
           </div>
           <div className="flex items-center justify-between py-1.5 border-b border-black/8 dark:border-white/8">
             <span className="text-[var(--text-muted)]">Toggle Sidebar Rail</span>

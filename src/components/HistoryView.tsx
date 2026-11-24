@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Download, Eye, Search, Trash2 } from 'lucide-react';
-import type { ConversionJob } from '../shared/types';
+import { ArrowUpRight, Download, Eye, Search, Trash2 } from 'lucide-react';
+import type { ConversionJob, ToolKind } from '../shared/types';
 import { formatBytes, formatDeltaPercent, formatRelativeTime } from '../utils/formatters';
 import { SPRING_SNAPPY } from '../utils/motion';
 import { PreviewPanel } from './PreviewPanel';
@@ -12,26 +12,31 @@ interface HistoryViewProps {
   jobs: ConversionJob[];
   onDeleteJob: (id: string) => Promise<void>;
   onClearHistory: () => Promise<void>;
+  onPromoteToTool?: (jobId: string, targetTool: Exclude<ToolKind, 'workflow'>) => Promise<void>;
 }
 
-export function HistoryView({ jobs, onDeleteJob, onClearHistory }: HistoryViewProps) {
+export function HistoryView({ jobs, onDeleteJob, onClearHistory, onPromoteToTool }: HistoryViewProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'failed'>('all');
+  const [toolFilter, setToolFilter] = useState<'all' | ToolKind>('all');
   const [previewJob, setPreviewJob] = useState<ConversionJob | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return jobs.filter((j) => {
       if (statusFilter !== 'all' && j.status !== statusFilter) return false;
+      const effectiveTool: ToolKind = j.tool || 'converter';
+      if (toolFilter !== 'all' && effectiveTool !== toolFilter) return false;
       if (!q) return true;
       return (
         j.originalName.toLowerCase().includes(q) ||
         j.sourceExt.toLowerCase().includes(q) ||
         j.targetExt.toLowerCase().includes(q) ||
-        j.category.toLowerCase().includes(q)
+        j.category.toLowerCase().includes(q) ||
+        effectiveTool.toLowerCase().includes(q)
       );
     });
-  }, [jobs, search, statusFilter]);
+  }, [jobs, search, statusFilter, toolFilter]);
 
   return (
     <div className="space-y-6">
@@ -87,15 +92,42 @@ export function HistoryView({ jobs, onDeleteJob, onClearHistory }: HistoryViewPr
           </div>
         </div>
 
-        <div className="relative">
-          <Search className="w-4 h-4 text-[var(--text-secondary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search history by filename, format, or category..."
-            className="w-full rounded-xl border border-[var(--control-border)] bg-[var(--input-bg)] pl-10 pr-4 py-2.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-zinc-500 dark:focus:border-white/45 transition-colors"
-          />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="w-4 h-4 text-[var(--text-secondary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search history by filename, format, tool, or category..."
+              className="w-full rounded-xl border border-[var(--control-border)] bg-[var(--input-bg)] pl-10 pr-4 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-zinc-500 dark:focus:border-white/45 transition-colors"
+            />
+          </div>
+          <div className="inline-flex flex-wrap gap-1 p-1 rounded-xl border border-black/10 dark:border-white/12 bg-black/4 dark:bg-black/35">
+            {(
+              [
+                { id: 'all', label: 'All Tools' },
+                { id: 'converter', label: 'Converter' },
+                { id: 'bg-remover', label: 'BG Remover' },
+                { id: 'compressor', label: 'Compressor' },
+                { id: 'archive', label: 'Archive' },
+                { id: 'workflow', label: 'Workflow' },
+              ] as const
+            ).map((tf) => (
+              <button
+                key={tf.id}
+                type="button"
+                onClick={() => setToolFilter(tf.id)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium cursor-pointer whitespace-nowrap transition-colors ${
+                  toolFilter === tf.id
+                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {tf.label}
+              </button>
+            ))}
+          </div>
         </div>
       </GlassSurface>
 
@@ -154,6 +186,16 @@ export function HistoryView({ jobs, onDeleteJob, onClearHistory }: HistoryViewPr
                             >
                               <Eye className="w-3.5 h-3.5" />
                               Preview
+                            </button>
+                          )}
+                          {job.status === 'completed' && job.downloadUrl && onPromoteToTool && (
+                            <button
+                              type="button"
+                              onClick={() => onPromoteToTool(job.id, 'compressor')}
+                              className="inline-flex items-center gap-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                            >
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                              Compress
                             </button>
                           )}
                           {job.status === 'completed' && job.downloadUrl && (

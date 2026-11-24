@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   AlertCircle,
@@ -6,19 +6,29 @@ import {
   ChevronDown,
   Download,
   FilePlus2,
+  FolderKanban,
   GitMerge,
   Loader2,
   SlidersHorizontal,
   Sparkles,
-  Star,
   Upload,
 } from 'lucide-react';
-import type { ConversionJob, ConversionOptions, IdentifiedFileMetadata } from '../shared/types';
+import type {
+  ConversionJob,
+  ConversionOptions,
+  FormatCategory,
+  IdentifiedFileMetadata,
+  SavedPreset,
+  ToolKind,
+} from '../shared/types';
 import { getFormatByExtension } from '../shared/formats';
 import { formatBytes, formatDeltaPercent } from '../utils/formatters';
+import { type ConversionIntent, recommendConversionIntelligence } from '../utils/processingIntelligence';
 import { ACCORDION_VARIANTS, MOTION_EASE, PANEL_SLIDE_VARIANTS, SPRING_SNAPPY } from '../utils/motion';
 import { PreviewPanel } from './PreviewPanel';
 import { ConversionOptionsPanel } from './ConversionOptionsPanel';
+import { ToolHandoffBar } from './ToolHandoffBar';
+import { CategoriesView } from './CategoriesView';
 import { GlassSurface } from './glass/GlassSurface';
 import { GlassDropdown } from './glass/GlassDropdown';
 
@@ -36,31 +46,51 @@ export interface StagedConversionItem {
 
 interface UniversalConverterViewProps {
   staged: StagedConversionItem | null;
-  favoritePairs: string[];
+  presets?: SavedPreset[];
+  selectedCategory: FormatCategory | 'all';
+  explorerRequestedTick?: number;
+  onSelectCategory: (cat: FormatCategory | 'all') => void;
   onUploadFile: (file: File, preferredTarget?: string) => Promise<void>;
   onLoadSample: (ext: string, suggestedTarget?: string) => Promise<void>;
   onUpdateStaged: (patch: Partial<StagedConversionItem>) => void;
   onConvert: () => Promise<void>;
-  onToggleFavorite: (pair: string) => void;
+  onQueueStagedToBatch?: () => void;
   onMergeFiles: (
     files: File[],
     mode: 'pdf-merge' | 'audio-merge' | 'video-merge' | 'archive-pack',
     targetExt: string
   ) => Promise<ConversionJob | null>;
+  onPromoteToTool: (jobId: string, targetTool: Exclude<ToolKind, 'workflow'>) => Promise<void>;
+  onSavePreset?: (preset: Omit<SavedPreset, 'id' | 'createdAt'>) => Promise<void>;
 }
+
+const INTENT_OPTIONS: { id: ConversionIntent; label: string }[] = [
+  { id: 'balanced', label: 'Balanced' },
+  { id: 'web', label: 'Web Native' },
+  { id: 'smallest', label: 'Smallest Size' },
+  { id: 'print', label: 'Print Master' },
+  { id: 'transparency', label: 'Preserve Alpha' },
+  { id: 'editing', label: 'Editable Master' },
+];
 
 export function UniversalConverterView({
   staged,
-  favoritePairs,
+  presets = [],
+  selectedCategory,
+  explorerRequestedTick,
+  onSelectCategory,
   onUploadFile,
   onLoadSample,
   onUpdateStaged,
   onConvert,
-  onToggleFavorite,
+  onQueueStagedToBatch,
   onMergeFiles,
+  onPromoteToTool,
+  onSavePreset,
 }: UniversalConverterViewProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mergeInputRef = useRef<HTMLInputElement | null>(null);
+  const [subView, setSubView] = useState<'converter' | 'compatibility'>('converter');
   const [mergeMode, setMergeMode] = useState<'pdf-merge' | 'audio-merge' | 'video-merge' | 'archive-pack'>('pdf-merge');
   const [mergeFiles, setMergeFiles] = useState<File[]>([]);
   const [mergeTarget, setMergeTarget] = useState('pdf');
@@ -69,10 +99,17 @@ export function UniversalConverterView({
   const [mergeError, setMergeError] = useState<string | null>(null);
   const [showMergeTool, setShowMergeTool] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(true);
+  const [intent, setIntent] = useState<ConversionIntent>('balanced');
+
+  useEffect(() => {
+    if (explorerRequestedTick && explorerRequestedTick > 0) {
+      setSubView('compatibility');
+    }
+  }, [explorerRequestedTick]);
 
   const srcFormatDef = staged ? getFormatByExtension(staged.info.detectedExt) : undefined;
-  const pairKey = staged ? `${staged.info.detectedExt}->${staged.targetFormat}` : '';
-  const isFav = pairKey ? favoritePairs.includes(pairKey) : false;
+  const smartRecs = staged ? recommendConversionIntelligence(staged.info, intent) : [];
+  const converterPresets = presets.filter((p) => p.tool === 'converter');
 
   const handleRunMerge = async () => {
     if (mergeFiles.length < 2) return;
@@ -101,26 +138,64 @@ export function UniversalConverterView({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
+          <div className="inline-flex gap-1 p-1 rounded-xl border border-black/10 dark:border-white/12 bg-black/4 dark:bg-black/35">
+            {(
+              [
+                { id: 'converter', label: 'Converter' },
+                { id: 'compatibility', label: 'Format Explorer' },
+              ] as const
+            ).map((t) => {
+              const active = subView === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setSubView(t.id)}
+                  className="relative px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer whitespace-nowrap"
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="uc-subview-pill"
+                      transition={SPRING_SNAPPY}
+                      className="absolute inset-0 rounded-lg bg-zinc-900 dark:bg-white"
+                    />
+                  )}
+                  <span
+                    className={`relative z-10 ${
+                      active ? 'text-white dark:text-black' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    {t.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <input
             ref={fileInputRef}
             type="file"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) onUploadFile(file);
+              if (file) {
+                setSubView('converter');
+                onUploadFile(file);
+              }
               e.target.value = '';
             }}
           />
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowMergeTool((v) => !v)}
-            aria-expanded={showMergeTool}
-            className="glass-interactive inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium text-[var(--text-primary)] whitespace-nowrap shrink-0 cursor-pointer"
-          >
-            <GitMerge className="w-3.5 h-3.5" />
-            {showMergeTool ? 'Hide Merge & Pack Tool' : 'Merge PDFs / Media / Pack ZIP'}
-          </motion.button>
+          {subView === 'converter' && (
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowMergeTool((v) => !v)}
+              aria-expanded={showMergeTool}
+              className="glass-interactive inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium text-[var(--text-primary)] whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <GitMerge className="w-3.5 h-3.5" />
+              {showMergeTool ? 'Hide Merge & Pack' : 'Merge / Pack'}
+            </motion.button>
+          )}
           <motion.button
             type="button"
             whileTap={{ scale: 0.98 }}
@@ -132,6 +207,18 @@ export function UniversalConverterView({
           </motion.button>
         </div>
       </GlassSurface>
+
+      {subView === 'compatibility' ? (
+        <CategoriesView
+          selectedCategory={selectedCategory}
+          onSelectCategory={onSelectCategory}
+          onLaunchSample={(ext, target) => {
+            setSubView('converter');
+            onLoadSample(ext, target);
+          }}
+        />
+      ) : (
+        <>
 
       {/* Multi-file Merge & Archive Bundler (Slide Accordion) */}
       <AnimatePresence initial={false}>
@@ -389,39 +476,60 @@ export function UniversalConverterView({
                   </div>
                 ) : (
                   <>
-                    {/* Smart Recommendations */}
-                    {staged.info.recommendedOutputs.length > 0 && (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                          <Sparkles className="w-3.5 h-3.5 text-[var(--text-primary)]" />
-                          <span>Smart Output Recommendations</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {staged.info.recommendedOutputs.map((rec) => {
-                            const active = staged.targetFormat === rec.format;
-                            return (
-                              <motion.button
-                                key={rec.format}
+                    {/* Conversion Intelligence & Intent Selector */}
+                    {staged.info.compatibleOutputs.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                            <Sparkles className="w-3.5 h-3.5 text-[var(--text-primary)]" />
+                            <span>Conversion Intelligence · Goal-Based Output Guidance</span>
+                          </div>
+                          <div className="inline-flex flex-wrap gap-1 p-0.5 rounded-lg border border-black/10 dark:border-white/12 bg-black/4 dark:bg-black/35">
+                            {INTENT_OPTIONS.map((opt) => (
+                              <button
+                                key={opt.id}
                                 type="button"
-                                whileTap={{ scale: 0.985 }}
-                                onClick={() => onUpdateStaged({ targetFormat: rec.format })}
-                                className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
-                                  active
-                                    ? 'border-zinc-900 bg-black/8 dark:border-white dark:bg-white/14'
-                                    : 'glass-interactive'
+                                onClick={() => setIntent(opt.id)}
+                                className={`px-2 py-1 rounded-md text-[11px] font-medium cursor-pointer whitespace-nowrap transition-colors ${
+                                  intent === opt.id
+                                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-black'
+                                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                                 }`}
                               >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-mono text-sm font-semibold text-[var(--text-primary)]">
-                                    {rec.format.toUpperCase()}
-                                  </span>
-                                  <span className="text-xs text-[var(--text-muted)]">{rec.badge}</span>
-                                </div>
-                                <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{rec.reason}</p>
-                              </motion.button>
-                            );
-                          })}
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
+
+                        {smartRecs.length > 0 && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {smartRecs.map((rec) => {
+                              const active = staged.targetFormat === rec.format;
+                              return (
+                                <motion.button
+                                  key={rec.format}
+                                  type="button"
+                                  whileTap={{ scale: 0.985 }}
+                                  onClick={() => onUpdateStaged({ targetFormat: rec.format })}
+                                  className={`rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
+                                    active
+                                      ? 'border-zinc-900 bg-black/8 dark:border-white dark:bg-white/14'
+                                      : 'glass-interactive'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-mono text-sm font-semibold text-[var(--text-primary)]">
+                                      {rec.format.toUpperCase()}
+                                    </span>
+                                    <span className="text-xs text-[var(--text-muted)]">{rec.badge}</span>
+                                  </div>
+                                  <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{rec.reason}</p>
+                                </motion.button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -450,22 +558,48 @@ export function UniversalConverterView({
                         />
                       </div>
 
-                      <motion.button
-                        type="button"
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => onToggleFavorite(pairKey)}
-                        aria-label={`Favorite ${pairKey}`}
-                        className="glass-interactive inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs text-[var(--text-primary)] cursor-pointer"
-                      >
-                        <Star
-                          className={`w-3.5 h-3.5 ${
-                            isFav
-                              ? 'fill-zinc-900 text-zinc-900 dark:fill-white dark:text-white'
-                              : 'text-[var(--text-muted)]'
-                          }`}
-                        />
-                        {isFav ? 'Favorited' : 'Pin Pair'}
-                      </motion.button>
+                      {converterPresets.length > 0 && (
+                        <div className="w-44">
+                          <label className="block text-xs text-[var(--text-muted)] mb-1.5">Apply Preset</label>
+                          <GlassDropdown
+                            size="sm"
+                            ariaLabel="Apply converter preset"
+                            placeholder="Choose preset..."
+                            value=""
+                            onChange={(id) => {
+                              const found = converterPresets.find((p) => p.id === id);
+                              if (!found) return;
+                              const cfgTarget = found.config.targetFormat ? String(found.config.targetFormat) : staged.targetFormat;
+                              const nextTarget = staged.info.compatibleOutputs.includes(cfgTarget)
+                                ? cfgTarget
+                                : staged.targetFormat;
+                              onUpdateStaged({
+                                targetFormat: nextTarget,
+                                options: {
+                                  ...staged.options,
+                                  ...((found.config.options as Partial<ConversionOptions>) || (found.config as Partial<ConversionOptions>)),
+                                },
+                              });
+                            }}
+                            options={[
+                              { value: '', label: 'Choose preset...' },
+                              ...converterPresets.map((p) => ({ value: p.id, label: p.name })),
+                            ]}
+                          />
+                        </div>
+                      )}
+
+                      {onQueueStagedToBatch && (
+                        <motion.button
+                          type="button"
+                          whileTap={{ scale: 0.97 }}
+                          onClick={onQueueStagedToBatch}
+                          className="glass-interactive inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-xs text-[var(--text-primary)] cursor-pointer whitespace-nowrap"
+                        >
+                          <FolderKanban className="w-3.5 h-3.5" />
+                          Queue to Batch
+                        </motion.button>
+                      )}
 
                       <motion.button
                         type="button"
@@ -618,11 +752,22 @@ export function UniversalConverterView({
                         ext={staged.job.targetExt}
                       />
                     </div>
+
+                    <ToolHandoffBar
+                      job={staged.job}
+                      currentTool="converter"
+                      onPromoteToTool={onPromoteToTool}
+                      presetConfig={{ targetFormat: staged.targetFormat, options: staged.options }}
+                      presetDescription={`Convert files to ${staged.targetFormat.toUpperCase()}`}
+                      onSavePreset={onSavePreset}
+                    />
                   </motion.section>
                 )}
               </AnimatePresence>
             </div>
           </motion.div>
+      )}
+        </>
       )}
     </div>
   );

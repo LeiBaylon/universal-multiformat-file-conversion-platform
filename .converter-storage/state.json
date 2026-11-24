@@ -411,6 +411,270 @@
         "colorspace": "sRGB",
         "bitDepth": "8-bit"
       }
+    },
+    {
+      "id": "wf_1795529231066_cd87f89892",
+      "tool": "workflow",
+      "originalName": "watch_product.png",
+      "sourceExt": "png",
+      "targetExt": "zip",
+      "category": "ecosystem",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 36216,
+      "outputSizeBytes": 478038,
+      "outputName": "wf_1795529231066_cd87f89892_watch_product_studio.zip",
+      "durationMs": 12399,
+      "engineUsed": "5-Step Custom Sequence",
+      "createdAt": "2026-11-24T14:07:11.067Z",
+      "completedAt": "2026-11-24T14:07:11.067Z",
+      "options": {
+        "steps": [
+          {
+            "tool": "bg-remover",
+            "summary": "Background removed (transparent backdrop)",
+            "sizeBytes": 196564
+          },
+          {
+            "tool": "resize",
+            "summary": "Resized to 1200×1200 (inside)",
+            "sizeBytes": 1105340
+          },
+          {
+            "tool": "compress",
+            "summary": "PNG quality 82% + metadata stripped (-79.4%)",
+            "sizeBytes": 227650
+          },
+          {
+            "tool": "convert",
+            "summary": "Processed via ImageMagick WEBP encoder.",
+            "sizeBytes": 477854
+          },
+          {
+            "tool": "archive",
+            "summary": "Created standard ZIP archive (1 file(s), level 7).",
+            "sizeBytes": 478038
+          }
+        ],
+        "namingPattern": "{name}_studio",
+        "destinationFolder": ""
+      },
+      "previewKind": "none"
+    },
+    {
+      "id": "wf_1795529239839_74c6b9ba14",
+      "tool": "workflow",
+      "originalName": "emblem_badge.png",
+      "sourceExt": "png",
+      "targetExt": "zip",
+      "category": "ecosystem",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 27094,
+      "outputSizeBytes": 31115,
+      "outputName": "wf_1795529239839_74c6b9ba14_emblem_badge_studio.zip",
+      "durationMs": 8759,
+      "engineUsed": "5-Step Custom Sequence",
+      "createdAt": "2026-11-24T14:07:19.839Z",
+      "completedAt": "2026-11-24T14:07:19.839Z",
+      "options": {
+        "steps": [
+          {
+            "tool": "bg-remover",
+            "summary": "Background removed (transparent backdrop)",
+            "sizeBytes": 11781
+          },
+          {
+            "tool": "resize",
+            "summary": "Resized to 1200×1200 (inside)",
+            "sizeBytes": 92568
+          },
+          {
+            "tool": "compress",
+            "summary": "PNG quality 82% + metadata stripped (-82.3%)",
+            "sizeBytes": 16355
+          },
+          {
+            "tool": "convert",
+            "summary": "Processed via ImageMagick WEBP encoder.",
+            "sizeBytes": 32450
+          },
+          {
+            "tool": "archive",
+            "summary": "Created standard ZIP archive (1 file(s), level 7).",
+            "sizeBytes": 31115
+          }
+        ],
+        "namingPattern": "{name}_studio",
+        "destinationFolder": ""
+      },
+      "previewKind": "none"
+    },
+    {
+      "id": "job_1795529532629_146ad93980",
+      "tool": "converter",
+      "batchId": "batch_1795529532575",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-24T14:12:12.629Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795529532629_146ad93980_sample.webp",
+      "durationMs": 156,
+      "completedAt": "2026-11-24T14:12:12.785Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795529532812_8a2ae77487",
+      "tool": "converter",
+      "batchId": "batch_1795529532575",
+      "originalName": "sample.yaml",
+      "sourceExt": "yaml",
+      "targetExt": "json",
+      "category": "data",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 124,
+      "createdAt": "2026-11-24T14:12:12.813Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Structured Data Engine",
+      "outputSizeBytes": 201,
+      "outputName": "job_1795529532812_8a2ae77487_sample.json",
+      "durationMs": 11,
+      "completedAt": "2026-11-24T14:12:12.824Z",
+      "previewKind": "text",
+      "details": {
+        "records": 3
+      }
+    },
+    {
+      "id": "job_1795529532865_0e9d0c6f5a",
+      "tool": "converter",
+      "batchId": "batch_1795529532575",
+      "originalName": "sample.srt",
+      "sourceExt": "srt",
+      "targetExt": "vtt",
+      "category": "subtitle",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 148,
+      "createdAt": "2026-11-24T14:12:12.865Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Subtitle Cue Engine",
+      "outputSizeBytes": 156,
+      "outputName": "job_1795529532865_0e9d0c6f5a_sample.vtt",
+      "durationMs": 2,
+      "completedAt": "2026-11-24T14:12:12.867Z",
+      "previewKind": "text",
+      "details": {
+        "cues": 2
+      }
+    },
+    {
+      "id": "job_1795529667515_2d0d1489fd",
+      "tool": "converter",
+      "batchId": "batch_1795529667414",
+      "originalName": "sample.png",
+      "sourceExt": "png",
+      "targetExt": "webp",
+      "category": "image",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 395170,
+      "createdAt": "2026-11-24T14:14:27.516Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "ImageMagick",
+      "outputSizeBytes": 3742,
+      "outputName": "job_1795529667515_2d0d1489fd_sample.webp",
+      "durationMs": 168,
+      "completedAt": "2026-11-24T14:14:27.684Z",
+      "previewKind": "image",
+      "details": {
+        "format": "WEBP",
+        "width": 640,
+        "height": 400,
+        "colorspace": "sRGB",
+        "bitDepth": "8-bit"
+      }
+    },
+    {
+      "id": "job_1795529667716_a87a8cf097",
+      "tool": "converter",
+      "batchId": "batch_1795529667414",
+      "originalName": "sample.yaml",
+      "sourceExt": "yaml",
+      "targetExt": "json",
+      "category": "data",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 124,
+      "createdAt": "2026-11-24T14:14:27.716Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Structured Data Engine",
+      "outputSizeBytes": 201,
+      "outputName": "job_1795529667716_a87a8cf097_sample.json",
+      "durationMs": 9,
+      "completedAt": "2026-11-24T14:14:27.725Z",
+      "previewKind": "text",
+      "details": {
+        "records": 3
+      }
+    },
+    {
+      "id": "job_1795529667763_a0a28820b6",
+      "tool": "converter",
+      "batchId": "batch_1795529667414",
+      "originalName": "sample.srt",
+      "sourceExt": "srt",
+      "targetExt": "vtt",
+      "category": "subtitle",
+      "operationKind": "conversion",
+      "status": "completed",
+      "progress": 100,
+      "inputSizeBytes": 148,
+      "createdAt": "2026-11-24T14:14:27.763Z",
+      "options": {
+        "quality": 88
+      },
+      "engineUsed": "Subtitle Cue Engine",
+      "outputSizeBytes": 156,
+      "outputName": "job_1795529667763_a0a28820b6_sample.vtt",
+      "durationMs": 2,
+      "completedAt": "2026-11-24T14:14:27.765Z",
+      "previewKind": "text",
+      "details": {
+        "cues": 2
+      }
     }
   ],
   "settings": {
@@ -430,9 +694,9 @@
       "srt->vtt"
     ],
     "recentFormats": [
-      "webp",
       "vtt",
       "json",
+      "webp",
       "pdf",
       "mp3",
       "glb"
@@ -444,7 +708,184 @@
       "audio": "mp3",
       "video": "mp4",
       "data": "json"
-    }
+    },
+    "defaultNamingPattern": "{name}_processed",
+    "defaultDestinationFolder": "Exports"
   },
-  "lastCleanupAt": null
+  "presets": [
+    {
+      "id": "preset_studio_cutout_webp",
+      "name": "Product Cutout → 1200px WebP + ZIP",
+      "tool": "workflow",
+      "kind": "workflow",
+      "categoryTag": "Workflow",
+      "description": "Removes background cleanly, resizes to 1200×1200, optimizes WebP quality, and bundles into ZIP.",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "useCount": 1,
+      "outputRule": {
+        "namingPattern": "{name}_studio",
+        "destinationMode": "download-queue"
+      },
+      "batchSettings": {
+        "continueOnError": true
+      },
+      "steps": [
+        {
+          "id": "wf_s1",
+          "tool": "bg-remover",
+          "operationName": "Remove Image Background",
+          "enabled": true,
+          "config": {
+            "modelPrecision": "fast",
+            "outputFormat": "png",
+            "backgroundMode": "transparent",
+            "featherRadius": 1
+          }
+        },
+        {
+          "id": "wf_s2",
+          "tool": "resize",
+          "operationName": "Resize Image",
+          "enabled": true,
+          "config": {
+            "width": 1200,
+            "height": 1200,
+            "fit": "inside",
+            "maintainAspect": true
+          }
+        },
+        {
+          "id": "wf_s3",
+          "tool": "compress",
+          "operationName": "Compress File",
+          "enabled": true,
+          "config": {
+            "goal": "balanced",
+            "quality": 82,
+            "stripMetadata": true
+          }
+        },
+        {
+          "id": "wf_s4",
+          "tool": "convert",
+          "operationName": "Convert Format",
+          "enabled": true,
+          "config": {
+            "targetFormat": "webp",
+            "quality": 86,
+            "stripMetadata": true
+          }
+        },
+        {
+          "id": "wf_s5",
+          "tool": "archive",
+          "operationName": "Package Into Archive",
+          "enabled": true,
+          "config": {
+            "format": "zip",
+            "level": 7
+          }
+        }
+      ],
+      "config": {},
+      "lastUsedAt": "2026-11-24T14:05:14.301Z"
+    },
+    {
+      "id": "preset_webp_hero",
+      "name": "WebP Hero Asset",
+      "tool": "converter",
+      "kind": "tool",
+      "categoryTag": "Web Assets",
+      "description": "Convert raster assets to 88% WebP preserving alpha transparency.",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "useCount": 0,
+      "config": {
+        "targetFormat": "webp",
+        "quality": 88,
+        "stripMetadata": true
+      }
+    },
+    {
+      "id": "preset_studio_cutout",
+      "name": "E-Commerce Studio Cutout",
+      "tool": "bg-remover",
+      "kind": "tool",
+      "categoryTag": "Studio Cutout",
+      "description": "High-detail cutout on crisp white studio backdrop with subtle drop shadow.",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "useCount": 0,
+      "config": {
+        "modelPrecision": "high",
+        "outputFormat": "png",
+        "backgroundMode": "solid",
+        "backgroundColor": "#ffffff",
+        "shadowEnabled": true,
+        "shadowOpacity": 0.28,
+        "shadowBlur": 18,
+        "featherRadius": 1
+      }
+    },
+    {
+      "id": "preset_balanced_compress",
+      "name": "Balanced Web Optimization",
+      "tool": "compressor",
+      "kind": "batch",
+      "categoryTag": "Compression",
+      "description": "Optimal quality-to-size compression stripping non-essential EXIF metadata.",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "useCount": 0,
+      "config": {
+        "goal": "balanced",
+        "quality": 78,
+        "stripMetadata": true
+      }
+    },
+    {
+      "id": "preset_7z_ultra",
+      "name": "7-Zip Ultra LZMA2",
+      "tool": "archive",
+      "kind": "tool",
+      "categoryTag": "Archiving",
+      "description": "Maximum-ratio 7Z container with level 9 compression.",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "useCount": 0,
+      "config": {
+        "format": "7z",
+        "level": 9,
+        "algorithm": "lzma2"
+      }
+    }
+  ],
+  "activities": [
+    {
+      "kind": "organize",
+      "title": "Populated Workspace Demo Files",
+      "detail": "9 files across 4 folders",
+      "status": "completed",
+      "id": "act_1795529439920_8430c07344",
+      "timestamp": "2026-11-24T14:10:39.920Z"
+    },
+    {
+      "kind": "workflow",
+      "title": "Workflow completed for emblem_badge.png",
+      "detail": "5 step(s) → ZIP (31115 bytes)",
+      "status": "completed",
+      "id": "act_1795529239840_178c5e005f",
+      "timestamp": "2026-11-24T14:07:19.840Z"
+    },
+    {
+      "kind": "workflow",
+      "title": "Workflow completed for watch_product.png",
+      "detail": "5 step(s) → ZIP (478038 bytes)",
+      "status": "completed",
+      "id": "act_1795529231068_5109675f52",
+      "timestamp": "2026-11-24T14:07:11.068Z"
+    }
+  ],
+  "lastCleanupAt": "2026-11-24T14:08:51.812Z"
 }

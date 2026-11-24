@@ -6,10 +6,11 @@ export const APP_DATA_ROOT = path.resolve(process.cwd(), '.converter-storage');
 export const UPLOAD_DIR = path.resolve(APP_DATA_ROOT, 'uploads');
 export const OUTPUT_DIR = path.resolve(APP_DATA_ROOT, 'outputs');
 export const WORK_DIR = path.resolve(APP_DATA_ROOT, 'work');
+export const WORKSPACE_DIR = path.resolve(APP_DATA_ROOT, 'workspace');
 export const STATE_FILE = path.resolve(APP_DATA_ROOT, 'state.json');
 
 export function ensureStorageDirs(): void {
-  for (const dir of [APP_DATA_ROOT, UPLOAD_DIR, OUTPUT_DIR, WORK_DIR]) {
+  for (const dir of [APP_DATA_ROOT, UPLOAD_DIR, OUTPUT_DIR, WORK_DIR, WORKSPACE_DIR]) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -33,6 +34,16 @@ export function sanitizeFilename(name: string): string {
   const base = path.basename(name.replace(/\0/g, ''));
   const sanitized = base.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/^\.+/, '');
   return sanitized || `file_${crypto.randomBytes(4).toString('hex')}`;
+}
+
+export function sanitizeRelativePath(rel: string): string {
+  const cleaned = rel.replace(/\0/g, '').replace(/\\/g, '/').replace(/^\/+/, '');
+  const segments = cleaned
+    .split('/')
+    .map((s) => s.trim())
+    .filter((s) => s && s !== '.' && s !== '..')
+    .map((s) => s.replace(/[^a-zA-Z0-9._ -]/g, '_'));
+  return segments.join('/');
 }
 
 export function createSafeId(prefix = 'job'): string {
@@ -155,6 +166,36 @@ export function detectMagicBytes(buffer: Buffer, originalName: string): MagicDet
     if (buffer[0] === 0xfd && buffer[1] === 0x37 && buffer[2] === 0x7a && buffer[3] === 0x58) {
       return { ext: 'xz', mime: 'application/x-xz', signature: 'FD 37 7A 58' };
     }
+    // 7-Zip
+    if (
+      buffer.length >= 6 &&
+      buffer[0] === 0x37 &&
+      buffer[1] === 0x7a &&
+      buffer[2] === 0xbc &&
+      buffer[3] === 0xaf &&
+      buffer[4] === 0x27 &&
+      buffer[5] === 0x1c
+    ) {
+      return { ext: '7z', mime: 'application/x-7z-compressed', signature: '37 7A BC AF 27 1C' };
+    }
+    // Microsoft CAB
+    if (buffer.subarray(0, 4).toString('ascii') === 'MSCF') {
+      return { ext: 'cab', mime: 'application/vnd.ms-cab-compressed', signature: 'MSCF' };
+    }
+    // Zstandard
+    if (buffer[0] === 0x28 && buffer[1] === 0xb5 && buffer[2] === 0x2f && buffer[3] === 0xfd) {
+      return { ext: 'zst', mime: 'application/zstd', signature: '28 B5 2F FD' };
+    }
+    // Debian ar / deb
+    if (buffer.length >= 8 && buffer.subarray(0, 8).toString('ascii') === '!<arch>\n') {
+      if (extFromName === 'deb') {
+        return { ext: 'deb', mime: 'application/vnd.debian.binary-package', signature: '!<arch>/deb' };
+      }
+    }
+    // RAR
+    if (buffer.subarray(0, 4).toString('ascii') === 'Rar!') {
+      return { ext: 'rar', mime: 'application/vnd.rar', signature: 'Rar!' };
+    }
     // Matroska / WebM
     if (buffer[0] === 0x1a && buffer[1] === 0x45 && buffer[2] === 0xdf && buffer[3] === 0xa3) {
       const sample = buffer.subarray(0, 64).toString('latin1');
@@ -212,3 +253,54 @@ export function detectMagicBytes(buffer: Buffer, originalName: string): MagicDet
     signature: extFromName ? `EXT:${extFromName.toUpperCase()}` : 'BINARY',
   };
 }
+
+export const ARCHIVE_BOMB_LIMITS = {
+  maxEntries: 2500,
+  maxTotalUncompressedBytes: 512 * 1024 * 1024, // 512 MB safety cap
+  maxCompressionRatio: 150,
+};
+
+export function validateSafeArchiveEntry(params: {
+  baseDir: string;
+  entryName: string;
+  uncompressedSize: number;
+  compressedSize?: number;
+  cumulativeBytes: number;
+  entryCount: number;
+}): { resolvedTarget: string; nextCumulativeBytes: number } {
+  const { baseDir, entryName, uncompressedSize, compressedSize, cumulativeBytes, entryCount } = params;
+
+  if (entryName.includes('..') || path.isAbsolute(entryName) || /^[a-zA-Z]:/.test(entryName)) {
+    throw new Error(`Security rejection: unsafe archive entry path "${entryName}".`);
+  }
+  const resolvedTarget = confinePath(baseDir, entryName);
+
+  if (entryCount > ARCHIVE_BOMB_LIMITS.maxEntries) {
+    throw new Error(`Archive bomb guard triggered: exceeds maximum ${ARCHIVE_BOMB_LIMITS.maxEntries} entries.`);
+  }
+  const nextCumulativeBytes = cumulativeBytes + Math.max(0, uncompressedSize);
+  if (nextCumulativeBytes > ARCHIVE_BOMB_LIMITS.maxTotalUncompressedBytes) {
+    throw new Error('Archive bomb guard triggered: expanded payload exceeds 512 MB safety ceiling.');
+  }
+  if (
+    compressedSize &&
+    compressedSize > 1024 &&
+    uncompressedSize / compressedSize > ARCHIVE_BOMB_LIMITS.maxCompressionRatio
+  ) {
+    throw new Error(
+      `Archive bomb guard triggered: suspicious compression ratio (${Math.round(uncompressedSize / compressedSize)}:1) on "${entryName}".`
+    );
+  }
+
+  return { resolvedTarget, nextCumulativeBytes };
+}
+
+export function ensureExecutablePermission(binPath: string): string {
+  try {
+    fs.chmodSync(binPath, 0o755);
+  } catch {
+    // ignore if read-only fs
+  }
+  return binPath;
+}
+

@@ -538,25 +538,30 @@ export async function generateSampleFileBuffer(ext: string): Promise<{ filename:
       });
       return { filename: 'sample_book.epub', buffer, mime: 'application/epub+zip' };
     }
-    case 'zip': {
+    case 'zip':
+    case '7z': {
       const tmpDir = path.join(WORK_DIR, `sz_${Date.now()}`);
-      const tmpZip = path.join(WORK_DIR, `sz_${Date.now()}.zip`);
+      const tmpArc = path.join(WORK_DIR, `sz_${Date.now()}.${fmt}`);
       fs.mkdirSync(tmpDir, { recursive: true });
-      fs.writeFileSync(path.join(tmpDir, 'readme.txt'), 'Sample archive content inside ZIP.', 'utf8');
-      fs.writeFileSync(path.join(tmpDir, 'config.json'), '{"version":1,"mode":"monochrome"}', 'utf8');
+      fs.writeFileSync(path.join(tmpDir, 'readme.txt'), `Sample archive content inside ${fmt.toUpperCase()}.`, 'utf8');
+      fs.writeFileSync(path.join(tmpDir, 'config.json'), '{"version":2,"mode":"monochrome"}', 'utf8');
       await createArchiveFromMultipleFiles(
         [
           { path: path.join(tmpDir, 'readme.txt'), originalName: 'readme.txt' },
           { path: path.join(tmpDir, 'config.json'), originalName: 'config.json' },
         ],
-        tmpZip,
-        'zip',
+        tmpArc,
+        fmt,
         WORK_DIR
       );
-      const buffer = fs.readFileSync(tmpZip);
+      const buffer = fs.readFileSync(tmpArc);
       fs.rmSync(tmpDir, { recursive: true, force: true });
-      fs.unlinkSync(tmpZip);
-      return { filename: 'sample_bundle.zip', buffer, mime: 'application/zip' };
+      fs.unlinkSync(tmpArc);
+      return {
+        filename: `sample_bundle.${fmt}`,
+        buffer,
+        mime: fmt === '7z' ? 'application/x-7z-compressed' : 'application/zip',
+      };
     }
     case 'obj': {
       // Clean octahedron mesh

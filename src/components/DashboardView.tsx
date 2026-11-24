@@ -1,8 +1,20 @@
 import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Download, FolderOpen, Layers, Sparkles, Star, Upload } from 'lucide-react';
-import { CATEGORIES, FORMAT_REGISTRY, QUICK_SHORTCUTS, getSupportedStats } from '../shared/formats';
-import type { ConversionJob, FormatCategory } from '../shared/types';
+import {
+  Archive,
+  ArrowRight,
+  Bookmark,
+  Download,
+  Eraser,
+  FolderOpen,
+  HardDrive,
+  Layers,
+  Minimize2,
+  Upload,
+  Workflow,
+} from 'lucide-react';
+import { CATEGORIES, FORMAT_REGISTRY, getSupportedStats } from '../shared/formats';
+import type { ConversionJob, NavView, SavedPreset } from '../shared/types';
 import { computeConversionActivity } from '../utils/converterHelpers';
 import { formatBytes, formatDeltaPercent, formatRelativeTime } from '../utils/formatters';
 import { MOTION_EASE } from '../utils/motion';
@@ -10,33 +22,22 @@ import { GlassSurface } from './glass/GlassSurface';
 
 interface DashboardViewProps {
   jobs: ConversionJob[];
-  favoritePairs: string[];
+  presets: SavedPreset[];
   onFilesSelected: (files: File[]) => void;
   onLoadSample: (ext: string, suggestedTarget?: string) => void;
-  onSelectCategory: (cat: FormatCategory) => void;
   onOpenHistory: () => void;
+  onNavigateTool: (view: NavView) => void;
+  onApplyPreset: (preset: SavedPreset) => void;
 }
-
-const SAMPLE_PRESETS = [
-  { ext: 'png', label: 'PNG Image', target: 'webp' },
-  { ext: 'pdf', label: 'PDF Document', target: 'docx' },
-  { ext: 'docx', label: 'Word DOCX', target: 'pdf' },
-  { ext: 'xlsx', label: 'Excel Sheet', target: 'csv' },
-  { ext: 'wav', label: 'WAV Audio', target: 'mp3' },
-  { ext: 'mp4', label: 'MP4 Video', target: 'gif' },
-  { ext: 'obj', label: '3D OBJ Mesh', target: 'glb' },
-  { ext: 'srt', label: 'SRT Subtitles', target: 'vtt' },
-  { ext: 'yaml', label: 'YAML Data', target: 'json' },
-  { ext: 'scss', label: 'SCSS Styles', target: 'css' },
-];
 
 export function DashboardView({
   jobs,
-  favoritePairs,
+  presets,
   onFilesSelected,
   onLoadSample,
-  onSelectCategory,
   onOpenHistory,
+  onNavigateTool,
+  onApplyPreset,
 }: DashboardViewProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -55,7 +56,7 @@ export function DashboardView({
 
   return (
     <div className="space-y-6">
-      {/* Hero Universal Dropzone */}
+      {/* Hero Universal Intake Dropzone */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -72,13 +73,13 @@ export function DashboardView({
       >
         <div className="max-w-3xl">
           <p className="text-xs text-[var(--text-muted)] mb-2 tabular-nums">
-            Universal Conversion Workspace · {stats.full + stats.partial} Active Formats · {CATEGORIES.length} Engines
+            OmniFiles Workspace · {stats.full + stats.partial} Active Formats · {CATEGORIES.length} Processing Engines
           </p>
           <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-[var(--text-primary)] [text-wrap:balance]">
-            Drop any file to identify, configure, and convert.
+            Full control over files, processing sequences, and batch operations.
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-3 max-w-2xl leading-relaxed">
-            Automatic magic-byte identification routes your file through dedicated raster, FFmpeg media, Ghostscript, SheetJS, EPUB, 3D mesh, font, and compiler pipelines.
+            Upload single or multiple files to convert, remove backgrounds, compress with target budgets, build custom step-by-step workflows, or audit and organize workspace storage.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -100,38 +101,81 @@ export function DashboardView({
               className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-black px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Upload className="w-4 h-4" />
-              Select Files to Convert
+              Select Files to Process
             </motion.button>
-            <motion.button
+            <button
               type="button"
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onLoadSample('png', 'webp')}
+              onClick={() => onNavigateTool('workflow-builder')}
               className="glass-interactive inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Sparkles className="w-4 h-4" />
-              Try Sample PNG to WebP
-            </motion.button>
-          </div>
-
-          <div className="mt-6 pt-5 border-t border-black/10 dark:border-white/10">
-            <p className="text-xs text-[var(--text-muted)] mb-2.5">Instant Sample Files</p>
-            <div className="flex flex-wrap gap-2">
-              {SAMPLE_PRESETS.map((s) => (
-                <button
-                  key={s.ext}
-                  type="button"
-                  onClick={() => onLoadSample(s.ext, s.target)}
-                  className="glass-interactive rounded-lg px-3 py-1.5 text-xs text-[var(--text-soft)] hover:text-[var(--text-primary)] whitespace-nowrap shrink-0 cursor-pointer"
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+              <Workflow className="w-4 h-4" />
+              Open Workflow Builder
+            </button>
+            <button
+              type="button"
+              onClick={() => onLoadSample('png', 'webp')}
+              className="glass-interactive inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--text-soft)] hover:text-[var(--text-primary)] whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              Load Sample PNG
+            </button>
           </div>
         </div>
       </motion.section>
 
-      {/* Conversion Stats Strip */}
+      {/* Core Processing Studios */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {(
+          [
+            {
+              id: 'converter' as NavView,
+              title: 'Universal Converter',
+              subtitle: `${stats.full + stats.partial} formats across 15 categories with batch & intent guidance.`,
+              icon: Layers,
+            },
+            {
+              id: 'bg-remover' as NavView,
+              title: 'Background Remover',
+              subtitle: 'ISNet cutout engine, manual restore/erase brush, studio backdrops, and batch mode.',
+              icon: Eraser,
+            },
+            {
+              id: 'compressor' as NavView,
+              title: 'File Compressor',
+              subtitle: 'Target-KB budget solver, CRF media encoding, PDF shrink, and batch overrides.',
+              icon: Minimize2,
+            },
+            {
+              id: 'archive' as NavView,
+              title: 'ZIP & Archive Manager',
+              subtitle: 'AES-256 ZIP/7Z creation, split volumes, inspection, modification, and batch extract.',
+              icon: Archive,
+            },
+          ]
+        ).map((tool) => {
+          const Icon = tool.icon;
+          return (
+            <button
+              key={tool.id}
+              type="button"
+              onClick={() => onNavigateTool(tool.id)}
+              className="glass-secondary glass-rim glass-interactive rounded-2xl p-5 text-left flex flex-col justify-between gap-3 cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-9 h-9 rounded-xl glass-interactive flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-[var(--text-primary)]" />
+                </div>
+                <ArrowRight className="w-4 h-4 text-[var(--text-secondary)]" />
+              </div>
+              <div>
+                <h2 className="font-display text-sm font-semibold text-[var(--text-primary)]">{tool.title}</h2>
+                <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">{tool.subtitle}</p>
+              </div>
+            </button>
+          );
+        })}
+      </section>
+
+      {/* Telemetry Strip */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <GlassSurface as="div" interactiveLight className="rounded-2xl p-5">
           <p className="text-xs text-[var(--text-muted)]">Registered Formats</p>
@@ -143,7 +187,7 @@ export function DashboardView({
           </p>
         </GlassSurface>
         <GlassSurface as="div" interactiveLight className="rounded-2xl p-5">
-          <p className="text-xs text-[var(--text-muted)]">Completed Conversions</p>
+          <p className="text-xs text-[var(--text-muted)]">Completed Jobs</p>
           <p className="font-display text-2xl font-semibold text-[var(--text-primary)] mt-1 tabular-nums">
             {completedJobs.length}
           </p>
@@ -157,154 +201,123 @@ export function DashboardView({
           <p className="text-xs text-[var(--text-secondary)] mt-1">Confined temporary disk</p>
         </GlassSurface>
         <GlassSurface as="div" interactiveLight className="rounded-2xl p-5">
-          <p className="text-xs text-[var(--text-muted)]">Pinned Favorites</p>
+          <p className="text-xs text-[var(--text-muted)]">Saved Presets</p>
           <p className="font-display text-2xl font-semibold text-[var(--text-primary)] mt-1 tabular-nums">
-            {favoritePairs.length}
+            {presets.length}
           </p>
-          <p className="text-xs text-[var(--text-secondary)] mt-1">Quick conversion pathways</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">Reusable workflows &amp; configs</p>
         </GlassSurface>
       </section>
 
-      {/* Quick Shortcuts, Favorite Formats & Popular Categories */}
+      {/* Reusable Presets & File Management Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <GlassSurface as="section" className="lg:col-span-5 rounded-[22px] p-6 space-y-5">
-          <div>
-            <div className="flex items-center justify-between mb-3 gap-3">
-              <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
-                Quick Conversion Shortcuts
-              </h2>
-              <span className="text-xs text-[var(--text-secondary)] whitespace-nowrap shrink-0">1-Click Sample</span>
+        <GlassSurface as="section" className="lg:col-span-6 rounded-[22px] p-6 space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">My Processing Presets</h2>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                Configure any tool or sequence without auto-running.
+              </p>
             </div>
-            <div className="divide-y divide-black/8 dark:divide-white/8">
-              {QUICK_SHORTCUTS.slice(0, 6).map((sc) => (
+            <button
+              type="button"
+              onClick={() => onNavigateTool('presets')}
+              className="text-xs text-[var(--text-primary)] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              Manage Presets
+            </button>
+          </div>
+          <div className="divide-y divide-black/8 dark:divide-white/8">
+            {presets.slice(0, 5).map((preset) => (
+              <div key={preset.id} className="py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-[var(--text-primary)] truncate">{preset.name}</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] truncate">
+                    {preset.kind === preset.tool ? preset.tool : `${preset.kind} · ${preset.tool}`}
+                  </p>
+                </div>
                 <button
-                  key={sc.label}
                   type="button"
-                  onClick={() => onLoadSample(sc.from, sc.to)}
-                  className="w-full py-2.5 px-2 -mx-2 rounded-lg flex items-center justify-between text-left hover:bg-black/5 dark:hover:bg-white/6 transition-colors cursor-pointer group"
+                  onClick={() => onApplyPreset(preset)}
+                  className="glass-interactive rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <span className="text-xs sm:text-sm text-[var(--text-soft)] group-hover:text-[var(--text-primary)]">
-                    {sc.label}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-mono tabular-nums">
-                    {sc.from.toUpperCase()}
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                    {sc.to.toUpperCase()}
-                  </span>
+                  Load Config
                 </button>
-              ))}
+              </div>
+            ))}
+          </div>
+        </GlassSurface>
+
+        <GlassSurface as="section" className="lg:col-span-6 rounded-[22px] p-6 space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
+                Workspace &amp; Storage Intelligence
+              </h2>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                Audit duplicates, large assets, organization rules, and batch renames.
+              </p>
             </div>
+            <HardDrive className="w-4 h-4 text-[var(--text-secondary)]" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {(
+              [
+                { id: 'explorer' as NavView, title: 'File Explorer', desc: 'Browse, upload folders, select & route files' },
+                { id: 'organizer' as NavView, title: 'Smart Organizer', desc: 'Preview category, date, or size sorting' },
+                { id: 'duplicates' as NavView, title: 'Duplicate Finder', desc: 'SHA-256 hash scan & safe deduplication' },
+                { id: 'storage-analyzer' as NavView, title: 'Storage Analyzer', desc: 'Category breakdown & reclaimable waste' },
+              ]
+            ).map((card) => (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() => onNavigateTool(card.id)}
+                className="glass-interactive rounded-xl p-3.5 text-left cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-[var(--text-primary)]">{card.title}</span>
+                  <HardDrive className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                </div>
+                <p className="text-[11px] text-[var(--text-secondary)] mt-1 leading-relaxed">{card.desc}</p>
+              </button>
+            ))}
           </div>
 
-          {favoritePairs.length > 0 && (
-            <div className="pt-4 border-t border-black/10 dark:border-white/10">
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-medium text-[var(--text-primary)] inline-flex items-center gap-1.5">
-                  <Star className="w-3.5 h-3.5" />
-                  Favorite Pairs
-                </span>
-                <span className="text-xs text-[var(--text-secondary)] tabular-nums">{favoritePairs.length}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {favoritePairs.slice(0, 6).map((pair) => {
-                  const [from, to] = pair.split('->');
-                  return (
-                    <button
-                      key={pair}
-                      type="button"
-                      onClick={() => onLoadSample(from, to)}
-                      className="glass-interactive rounded-lg px-2.5 py-1.5 text-xs font-mono text-[var(--text-primary)] inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>{from?.toUpperCase()}</span>
-                      <ArrowRight className="w-3 h-3 text-[var(--text-secondary)]" />
-                      <span>{to?.toUpperCase()}</span>
-                    </button>
-                  );
-                })}
-              </div>
+          {activity.length > 0 && (
+            <div className="pt-3 border-t border-black/10 dark:border-white/10 space-y-2">
+              <p className="text-xs font-medium text-[var(--text-primary)]">Session Throughput</p>
+              {activity.slice(0, 3).map((item) => (
+                <div key={item.category} className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px] tabular-nums">
+                    <span className="capitalize text-[var(--text-soft)]">{item.category}</span>
+                    <span className="text-[var(--text-muted)]">
+                      {item.count} job(s) · {formatBytes(item.bytes)} · {item.sharePercent}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-black/8 dark:bg-white/10 overflow-hidden">
+                    <div
+                      style={{ width: `${item.sharePercent}%` }}
+                      className="h-full bg-zinc-900 dark:bg-white rounded-full"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </GlassSurface>
-
-        <GlassSurface as="section" className="lg:col-span-7 rounded-[22px] p-6 space-y-5">
-          <div>
-            <div className="flex items-center justify-between mb-3.5">
-              <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
-                Popular Conversion Categories
-              </h2>
-              <span className="text-xs text-[var(--text-secondary)] tabular-nums">{CATEGORIES.length} Engines</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {CATEGORIES.slice(0, 8).map((cat) => {
-                const count = FORMAT_REGISTRY.filter(
-                  (f) => f.category === cat.id && f.supportLevel !== 'unavailable'
-                ).length;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => onSelectCategory(cat.id)}
-                    className="glass-interactive rounded-xl p-3.5 text-left cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-[var(--text-primary)]">{cat.label}</span>
-                      <span className="text-xs text-[var(--text-muted)] tabular-nums">{count} active</span>
-                    </div>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1 line-clamp-1">{cat.description}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Conversion Activity Breakdown */}
-          <div className="pt-4 border-t border-black/10 dark:border-white/10">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-medium text-[var(--text-primary)]">Session Conversion Activity</h3>
-              <span className="text-xs text-[var(--text-secondary)] tabular-nums">
-                {completedJobs.length} completed
-              </span>
-            </div>
-            {activity.length === 0 ? (
-              <p className="text-xs text-[var(--text-secondary)]">
-                Category throughput bars will populate as conversions complete in this session.
-              </p>
-            ) : (
-              <div className="space-y-2.5">
-                {activity.slice(0, 4).map((item) => (
-                  <div key={item.category} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs tabular-nums">
-                      <span className="capitalize text-[var(--text-soft)]">{item.category}</span>
-                      <span className="text-[var(--text-muted)]">
-                        {item.count} job(s) · {formatBytes(item.bytes)} · {item.sharePercent}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-black/8 dark:bg-white/10 overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${item.sharePercent}%` }}
-                        transition={{ duration: 0.45, ease: MOTION_EASE }}
-                        className="h-full bg-zinc-900 dark:bg-white rounded-full"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </GlassSurface>
       </div>
 
-      {/* Recently Converted Files */}
+      {/* Recently Processed Files */}
       <GlassSurface as="section" className="rounded-[22px] p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
-            Recently Converted Files
+            Recently Processed Files
           </h2>
           <button
             type="button"
             onClick={onOpenHistory}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             View All History
           </button>
@@ -313,9 +326,9 @@ export function DashboardView({
         {jobs.length === 0 ? (
           <div className="py-10 text-center border border-dashed border-black/12 dark:border-white/14 rounded-xl">
             <Layers className="w-6 h-6 text-[var(--text-secondary)] mx-auto mb-2" />
-            <p className="text-sm text-[var(--text-soft)]">No conversions recorded yet</p>
+            <p className="text-sm text-[var(--text-soft)]">No processing jobs recorded yet</p>
             <p className="text-xs text-[var(--text-secondary)] mt-1">
-              Upload a file or click any sample preset above to begin.
+              Select files above or open any processing studio to start.
             </p>
           </div>
         ) : (

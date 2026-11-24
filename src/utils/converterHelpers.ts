@@ -17,7 +17,7 @@ export function resolveDefaultTargetFormat(
 }
 
 export interface CategoryActivityStat {
-  category: FormatCategory;
+  category: FormatCategory | 'ecosystem';
   count: number;
   bytes: number;
   sharePercent: number;
@@ -27,7 +27,7 @@ export function computeConversionActivity(jobs: ConversionJob[]): CategoryActivi
   const completed = jobs.filter((j) => j.status === 'completed');
   if (completed.length === 0) return [];
 
-  const buckets = new Map<FormatCategory, { count: number; bytes: number }>();
+  const buckets = new Map<FormatCategory | 'ecosystem', { count: number; bytes: number }>();
   for (const job of completed) {
     const prev = buckets.get(job.category) || { count: 0, bytes: 0 };
     buckets.set(job.category, {

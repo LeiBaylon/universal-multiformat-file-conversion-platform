@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Check, Info, Search, Sliders, Star } from 'lucide-react';
+import { Check, Info, Search, Sliders } from 'lucide-react';
 import { CATEGORIES, FORMAT_REGISTRY } from '../shared/formats';
 import type { FormatCategory, FormatDefinition, SupportLevel } from '../shared/types';
 import { SPRING_SNAPPY } from '../utils/motion';
@@ -10,16 +10,12 @@ import { GlassModal } from './glass/GlassModal';
 interface CategoriesViewProps {
   selectedCategory: FormatCategory | 'all';
   onSelectCategory: (cat: FormatCategory | 'all') => void;
-  favoritePairs: string[];
-  onToggleFavorite: (pair: string) => void;
   onLaunchSample: (ext: string, suggestedTarget?: string) => void;
 }
 
 export function CategoriesView({
   selectedCategory,
   onSelectCategory,
-  favoritePairs,
-  onToggleFavorite,
   onLaunchSample,
 }: CategoriesViewProps) {
   const [query, setQuery] = useState('');
@@ -131,45 +127,6 @@ export function CategoriesView({
           />
         </div>
       </GlassSurface>
-
-      {/* Pinned Favorite Pairs */}
-      {favoritePairs.length > 0 && (
-        <GlassSurface as="section" className="rounded-[22px] p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-medium text-[var(--text-primary)]">Pinned Favorite Conversions</h3>
-            <span className="text-xs text-[var(--text-secondary)] tabular-nums">{favoritePairs.length} pairs</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {favoritePairs.map((pair) => {
-              const [from, to] = pair.split('->');
-              return (
-                <div
-                  key={pair}
-                  className="glass-interactive inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs"
-                >
-                  <button
-                    type="button"
-                    onClick={() => onLaunchSample(from, to)}
-                    className="inline-flex items-center gap-1.5 font-mono text-[var(--text-primary)] hover:underline cursor-pointer"
-                  >
-                    {from?.toUpperCase()}
-                    <ArrowRight className="w-3 h-3" />
-                    {to?.toUpperCase()}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onToggleFavorite(pair)}
-                    aria-label={`Remove favorite ${pair}`}
-                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
-                  >
-                    <Star className="w-3 h-3 fill-zinc-900 text-zinc-900 dark:fill-white dark:text-white" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </GlassSurface>
-      )}
 
       {/* Compatibility Matrix Table */}
       <GlassSurface as="section" className="rounded-[22px] p-6">

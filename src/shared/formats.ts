@@ -1,4 +1,4 @@
-import type { CategoryMeta, EngineId, FormatCategory, FormatDefinition, SmartRecommendation, SupportLevel } from './types';
+import type { ArchiveFormatCapabilityRow, CategoryMeta, EngineId, FormatCategory, FormatDefinition, SmartRecommendation, SupportLevel } from './types';
 
 export const CATEGORIES: CategoryMeta[] = [
   {
@@ -54,8 +54,8 @@ export const CATEGORIES: CategoryMeta[] = [
     id: 'archive',
     label: 'Archives',
     shortLabel: 'Archives',
-    description: 'Safe archive extraction, multi-file compression, and container conversion.',
-    engineSummary: 'Archiver, ADM-Zip, Tar, Gzip, Bzip2, XZ',
+    description: 'Safe archive extraction, multi-file compression, AES-256 encryption, and container conversion.',
+    engineSummary: '7-Zip (7za), Archiver, ADM-Zip, JSZip, Tar, Gzip, Bzip2, XZ, Fzstd',
   },
   {
     id: 'vector',
@@ -261,22 +261,22 @@ const RAW_FORMATS: FormatSeed[] = [
   { ext: 'tcr', name: 'Psion Text Compressed', category: 'ebook', mimes: ['application/x-tcr'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires Calibre ebook-convert.' },
 
   // H. ARCHIVE CONVERTER
-  { ext: 'zip', name: 'ZIP Archive', category: 'archive', mimes: ['application/zip'], engine: 'archive-node', op: 'archive' },
+  { ext: 'zip', name: 'ZIP Archive', category: 'archive', mimes: ['application/zip'], engine: 'archive-node', op: 'archive', notes: 'Full creation, extraction, encryption (AES-256), editing, and volume splitting.' },
+  { ext: '7z', name: '7-Zip Archive', category: 'archive', mimes: ['application/x-7z-compressed'], engine: '7zip-bin', op: 'archive', notes: 'Full creation, LZMA2/PPMd compression, AES-256 encryption, entry editing, and splitting via 7za.' },
   { ext: 'tar', name: 'POSIX Tape Archive', category: 'archive', mimes: ['application/x-tar'], engine: 'archive-node', op: 'archive' },
   { ext: 'gz', name: 'Gzip Compressed Archive', category: 'archive', mimes: ['application/gzip'], engine: 'archive-node', op: 'archive' },
   { ext: 'tgz', name: 'Gzipped Tarball', category: 'archive', mimes: ['application/gzip'], engine: 'archive-node', op: 'archive' },
   { ext: 'bz2', name: 'Bzip2 Tar Archive', category: 'archive', mimes: ['application/x-bzip2'], engine: 'archive-node', op: 'archive' },
   { ext: 'xz', name: 'XZ / LZMA2 Tar Archive', category: 'archive', mimes: ['application/x-xz'], engine: 'archive-node', op: 'archive' },
-  { ext: '7z', name: '7-Zip Archive', category: 'archive', mimes: ['application/x-7z-compressed'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires p7zip (7z) binary.' },
-  { ext: 'rar', name: 'RAR Archive', category: 'archive', mimes: ['application/vnd.rar'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Proprietary RAR binary not installed.' },
-  { ext: 'zst', name: 'Zstandard Archive', category: 'archive', mimes: ['application/zstd'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires zstd CLI.' },
-  { ext: 'iso', name: 'ISO 9660 Disc Image', category: 'archive', mimes: ['application/x-iso9660-image'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires 7z / xorriso.' },
-  { ext: 'cab', name: 'Microsoft Cabinet', category: 'archive', mimes: ['application/vnd.ms-cab-compressed'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires cabextract.' },
-  { ext: 'arj', name: 'ARJ Archive', category: 'archive', mimes: ['application/x-arj'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires arj utility.' },
-  { ext: 'lzh', name: 'LZH Archive', category: 'archive', mimes: ['application/x-lzh-compressed'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires lhasa.' },
-  { ext: 'lzma', name: 'LZMA Stream', category: 'archive', mimes: ['application/x-lzma'], support: 'partial', in: true, out: true, engine: 'archive-node', op: 'archive', notes: 'Handled via xz LZMA compressor.' },
+  { ext: 'lzma', name: 'LZMA Stream', category: 'archive', mimes: ['application/x-lzma'], support: 'partial', in: true, out: true, engine: '7zip-bin', op: 'archive', notes: 'Handled via 7za/xz LZMA compressor.' },
+  { ext: 'zst', name: 'Zstandard Archive', category: 'archive', mimes: ['application/zstd'], support: 'partial', in: true, out: false, engine: 'archive-node', op: 'extraction', notes: 'Decompression & tar.zst inspection supported via fzstd; native zstd creation requires zstd CLI.' },
+  { ext: 'cab', name: 'Microsoft Cabinet', category: 'archive', mimes: ['application/vnd.ms-cab-compressed'], support: 'partial', in: true, out: false, engine: '7zip-bin', op: 'extraction', notes: 'Inspection, integrity testing, and extraction supported via 7za; CAB creation is read-only.' },
+  { ext: 'deb', name: 'Debian Package', category: 'archive', mimes: ['application/vnd.debian.binary-package'], support: 'partial', in: true, out: false, engine: 'archive-node', op: 'extraction', notes: 'Package inspection & safe data extraction supported via dpkg-deb / ar.' },
+  { ext: 'rar', name: 'RAR Archive', category: 'archive', mimes: ['application/vnd.rar'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Proprietary RAR codec requires unrar / p7zip-rar adapter.' },
+  { ext: 'iso', name: 'ISO 9660 Disc Image', category: 'archive', mimes: ['application/x-iso9660-image'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires full 7zz / xorriso ISO9660 handler.' },
+  { ext: 'arj', name: 'ARJ Archive', category: 'archive', mimes: ['application/x-arj'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires arj / p7zip-full handler.' },
+  { ext: 'lzh', name: 'LZH Archive', category: 'archive', mimes: ['application/x-lzh-compressed'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires lhasa / p7zip-full handler.' },
   { ext: 'cpio', name: 'CPIO Archive', category: 'archive', mimes: ['application/x-cpio'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires GNU cpio.' },
-  { ext: 'deb', name: 'Debian Package', category: 'archive', mimes: ['application/vnd.debian.binary-package'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires dpkg-deb / ar.' },
   { ext: 'rpm', name: 'RPM Package', category: 'archive', mimes: ['application/x-rpm'], support: 'unavailable', in: false, out: false, engine: 'external-adapter', notes: 'Requires rpm2cpio.' },
 
   // I. VECTOR GRAPHICS CONVERTER
@@ -431,7 +431,7 @@ function computeCompatibleOutputs(seed: FormatSeed): string[] {
       return [];
 
     case 'archive':
-      return ['zip', 'tar', 'tgz', 'gz', 'bz2', 'xz'].filter((x) => x !== ext);
+      return ['zip', '7z', 'tar', 'tgz', 'gz', 'bz2', 'xz'].filter((x) => x !== ext);
 
     case 'model3d':
       return ['obj', 'stl', 'ply', 'off', 'gltf', 'glb', 'x3d', 'wrl'].filter((x) => x !== ext);
@@ -532,6 +532,7 @@ function computeRecommendations(seed: FormatSeed, compatible: string[]): SmartRe
       break;
     case 'archive':
       add('zip', 'Universal', 'Supported natively by macOS, Windows, and Linux.');
+      add('7z', 'Ultra LZMA2', 'High-ratio compression with optional AES-256 header encryption.');
       add('tgz', 'Unix Compact', 'Gzipped tarball ideal for servers and source trees.');
       add('xz', 'Max Ratio', 'LZMA2 compression for smallest archive footprint.');
       break;
@@ -637,3 +638,24 @@ export const QUICK_SHORTCUTS: { label: string; from: string; to: string; categor
   { label: 'TTF to WOFF2', from: 'ttf', to: 'woff2', category: 'font' },
   { label: 'SCSS to CSS', from: 'scss', to: 'css', category: 'webdev' },
 ];
+
+export const ARCHIVE_FORMAT_MATRIX: ArchiveFormatCapabilityRow[] = [
+  { ext: 'zip', name: 'ZIP Archive', supportLevel: 'full', create: true, extract: true, inspect: true, modify: true, encrypt: true, split: true, engine: '7za / ADM-Zip / Archiver AES-256', notes: 'Full create, selective extract, inspect, rename/add/delete entries, AES-256 password, and multi-volume split.' },
+  { ext: '7z', name: '7-Zip Archive', supportLevel: 'full', create: true, extract: true, inspect: true, modify: true, encrypt: true, split: true, engine: '7-Zip (7za 16.02)', notes: 'LZMA2 / LZMA / BZip2 / PPMd compression, AES-256 encryption, entry add/delete/rename, and split volumes.' },
+  { ext: 'tar', name: 'POSIX Tape Archive', supportLevel: 'full', create: true, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: 'Node Tar / GNU Tar', notes: 'Uncompressed multi-file tape container with safe traversal guards.' },
+  { ext: 'tgz', name: 'Gzipped Tarball', supportLevel: 'full', create: true, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: 'Node Tar + Zlib', notes: 'Standard .tar.gz container with level 1–9 compression.' },
+  { ext: 'gz', name: 'Gzip Archive', supportLevel: 'full', create: true, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: 'Zlib / Tar', notes: 'Single-file stream or tar-wrapped Gzip compression and extraction.' },
+  { ext: 'bz2', name: 'Bzip2 Archive', supportLevel: 'full', create: true, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: 'GNU Tar + BZip2 / 7za', notes: 'Burrows-Wheeler block-sorting archive creation and extraction.' },
+  { ext: 'xz', name: 'XZ / LZMA2 Archive', supportLevel: 'full', create: true, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: 'GNU Tar + XZ / 7za', notes: 'High-ratio LZMA2 tar archive creation and safe extraction.' },
+  { ext: 'lzma', name: 'LZMA Stream', supportLevel: 'partial', create: true, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: '7za / XZ Utils', notes: 'Single-stream LZMA compression and extraction.' },
+  { ext: 'zst', name: 'Zstandard Archive', supportLevel: 'partial', create: false, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: 'Fzstd + Tar', notes: 'Decompression and .tar.zst extraction supported; creation requires zstd CLI binary.' },
+  { ext: 'cab', name: 'Microsoft Cabinet', supportLevel: 'partial', create: false, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: '7-Zip (7za)', notes: 'Inspect, integrity test, and extract supported; CAB authoring is read-only.' },
+  { ext: 'deb', name: 'Debian Package', supportLevel: 'partial', create: false, extract: true, inspect: true, modify: false, encrypt: false, split: false, engine: 'dpkg-deb / GNU ar', notes: 'Safe package payload inspection and extraction supported.' },
+  { ext: 'rar', name: 'RAR Archive', supportLevel: 'unavailable', create: false, extract: false, inspect: false, modify: false, encrypt: false, split: false, engine: 'External Adapter (unrar)', notes: 'Proprietary RAR extraction requires unrar or p7zip-rar binary.' },
+  { ext: 'iso', name: 'ISO 9660 Disc Image', supportLevel: 'unavailable', create: false, extract: false, inspect: false, modify: false, encrypt: false, split: false, engine: 'External Adapter (7zz / xorriso)', notes: 'Requires full p7zip-full (7zz) or xorriso binary.' },
+  { ext: 'arj', name: 'ARJ Archive', supportLevel: 'unavailable', create: false, extract: false, inspect: false, modify: false, encrypt: false, split: false, engine: 'External Adapter (arj)', notes: 'Requires arj or p7zip-full handler.' },
+  { ext: 'lzh', name: 'LZH Archive', supportLevel: 'unavailable', create: false, extract: false, inspect: false, modify: false, encrypt: false, split: false, engine: 'External Adapter (lhasa)', notes: 'Requires lhasa or p7zip-full handler.' },
+  { ext: 'cpio', name: 'CPIO Archive', supportLevel: 'unavailable', create: false, extract: false, inspect: false, modify: false, encrypt: false, split: false, engine: 'External Adapter (cpio)', notes: 'Requires GNU cpio utility.' },
+  { ext: 'rpm', name: 'RPM Package', supportLevel: 'unavailable', create: false, extract: false, inspect: false, modify: false, encrypt: false, split: false, engine: 'External Adapter (rpm2cpio)', notes: 'Requires rpm2cpio utility.' },
+];
+

@@ -96,3 +96,66 @@ test('getViewDirection computes directional sign for page slides', () => {
   assert.equal(getViewDirection(4, 1), -1);
   assert.equal(getViewDirection(2, 2), 1);
 });
+
+import {
+  buildCompressionPresetOptions,
+  estimateArchiveFootprint,
+  recommendConversionIntelligence,
+} from './processingIntelligence';
+
+test('recommendConversionIntelligence re-ranks compatible outputs by user intent', () => {
+  const alphaRecs = recommendConversionIntelligence(
+    {
+      detectedExt: 'png',
+      category: 'image',
+      compatibleOutputs: ['jpg', 'bmp', 'webp', 'avif', 'pdf'],
+      recommendedOutputs: [{ format: 'jpg', badge: 'Photo', reason: 'Standard photo' }],
+    },
+    'transparency'
+  );
+  assert.ok(['webp', 'avif'].includes(alphaRecs[0].format));
+  assert.equal(alphaRecs[0].badge, 'Alpha Safe');
+
+  const printRecs = recommendConversionIntelligence(
+    {
+      detectedExt: 'png',
+      category: 'image',
+      compatibleOutputs: ['jpg', 'webp', 'pdf', 'avif'],
+      recommendedOutputs: [{ format: 'webp', badge: 'Web', reason: 'Web' }],
+    },
+    'print'
+  );
+  assert.equal(printRecs[0].format, 'pdf');
+  assert.equal(printRecs[0].badge, 'Print Master');
+});
+
+test('buildCompressionPresetOptions builds calibrated parameters per category and goal', () => {
+  const imgSmallest = buildCompressionPresetOptions('image', 'smallest');
+  assert.equal(imgSmallest.quality, 58);
+  assert.equal(imgSmallest.stripMetadata, true);
+  assert.equal(imgSmallest.preserveDimensions, false);
+
+  const imgTarget = buildCompressionPresetOptions('image', 'target-size', 45);
+  assert.equal(imgTarget.targetSizeKb, 45);
+  assert.equal(imgTarget.goal, 'target-size');
+
+  const pdfPrinter = buildCompressionPresetOptions('document', 'best-quality');
+  assert.equal(pdfPrinter.pdfPreset, 'printer');
+});
+
+test('estimateArchiveFootprint differentiates compressible text vs pre-compressed binaries', () => {
+  const textEst = estimateArchiveFootprint(
+    [{ name: 'notes.txt', size: 100_000 }],
+    '7z',
+    9
+  );
+  const binEst = estimateArchiveFootprint(
+    [{ name: 'photo.jpg', size: 100_000 }],
+    'zip',
+    6
+  );
+  assert.ok(textEst.estimatedOutputBytes < binEst.estimatedOutputBytes);
+  assert.ok(textEst.estimatedReductionPct > 40);
+  const tarEst = estimateArchiveFootprint([{ name: 'notes.txt', size: 100_000 }], 'tar', 0);
+  assert.equal(tarEst.estimatedReductionPct, 0);
+});

@@ -8,3 +8,13 @@ declare module 'opentype.js' {
   };
   export = opentype;
 }
+
+declare module '7zip-bin' {
+  export const path7za: string;
+  export const path7x: string;
+}
+
+declare module 'archiver-zip-encrypted' {
+  const zipEncrypted: unknown;
+  export = zipEncrypted;
+}

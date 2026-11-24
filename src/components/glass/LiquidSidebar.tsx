@@ -1,92 +1,165 @@
-import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
+  Activity,
   Archive,
-  BookOpen,
-  Box,
-  Braces,
-  Captions,
-  ChevronDown,
+  Bookmark,
   Clock,
-  Code2,
-  Compass,
+  CopyCheck,
+  Eraser,
+  FileSearch,
   FileText,
-  Film,
-  FlaskConical,
   FolderKanban,
+  FolderOpen,
+  FolderTree,
+  HardDrive,
   Home,
-  Image as ImageIcon,
   Layers,
-  Music,
+  Minimize2,
   PanelLeftClose,
   PanelLeftOpen,
-  PenTool,
-  Presentation,
   Settings,
-  Table2,
-  Type,
+  Sparkles,
+  Trash2,
+  Workflow,
   X,
 } from 'lucide-react';
-import { CATEGORIES, getSupportedStats } from '../../shared/formats';
-import type { FormatCategory } from '../../shared/types';
-import { ACCORDION_VARIANTS, MOTION_EASE, SPRING_SNAPPY } from '../../utils/motion';
+import type { NavView } from '../../shared/types';
+import { MOTION_EASE, SPRING_SNAPPY } from '../../utils/motion';
 import { GlassTooltip } from './GlassTooltip';
 
-export type NavView = 'dashboard' | 'converter' | 'categories' | 'batch' | 'history' | 'settings';
-
-const CATEGORY_ICONS: Record<FormatCategory, typeof ImageIcon> = {
-  image: ImageIcon,
-  document: FileText,
-  spreadsheet: Table2,
-  presentation: Presentation,
-  audio: Music,
-  video: Film,
-  ebook: BookOpen,
-  archive: Archive,
-  vector: PenTool,
-  model3d: Box,
-  font: Type,
-  subtitle: Captions,
-  data: Braces,
-  webdev: Code2,
-  scientific: FlaskConical,
-};
+export type { NavView };
 
 interface LiquidSidebarProps {
   view: NavView;
-  selectedCategory: FormatCategory | 'all';
   collapsed: boolean;
   mobileOpen: boolean;
   batchCount: number;
   historyCount: number;
+  presetsCount: number;
   onToggleCollapse: () => void;
   onCloseMobile: () => void;
   onNavigate: (view: NavView) => void;
-  onSelectCategory: (cat: FormatCategory) => void;
+}
+
+interface NavItemDef {
+  id: NavView;
+  label: string;
+  icon: typeof Home;
+  count?: number;
 }
 
 export function LiquidSidebar({
   view,
-  selectedCategory,
   collapsed,
   mobileOpen,
   batchCount,
   historyCount,
+  presetsCount,
   onToggleCollapse,
   onCloseMobile,
   onNavigate,
-  onSelectCategory,
 }: LiquidSidebarProps) {
-  const [categoriesOpen, setCategoriesOpen] = useState(true);
-  const stats = getSupportedStats();
-
-  const primaryNav: { id: NavView; label: string; shortcut: string; icon: typeof Home; count?: number }[] = [
-    { id: 'dashboard', label: 'Dashboard', shortcut: 'Alt+1', icon: Home },
-    { id: 'converter', label: 'Universal Converter', shortcut: 'Alt+2', icon: Layers },
-    { id: 'categories', label: 'Format Explorer', shortcut: 'Alt+3', icon: Compass },
-    { id: 'batch', label: 'Batch Converter', shortcut: 'Alt+4', icon: FolderKanban, count: batchCount },
-    { id: 'history', label: 'Conversion History', shortcut: 'Alt+5', icon: Clock, count: historyCount },
+  const sections: { title: string; items: NavItemDef[] }[] = [
+    {
+      title: 'Overview',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: Home },
+        { id: 'recent-activity', label: 'Recent Activity', icon: Activity },
+      ],
+    },
+    {
+      title: 'File Management',
+      items: [
+        { id: 'explorer', label: 'File Explorer', icon: FolderOpen },
+        { id: 'organizer', label: 'Smart Organizer', icon: FolderTree },
+        { id: 'duplicates', label: 'Duplicate Finder', icon: CopyCheck },
+        { id: 'large-files', label: 'Large Files', icon: HardDrive },
+        { id: 'renamer', label: 'Batch Renamer', icon: FileText },
+        { id: 'inspector', label: 'File Inspector', icon: FileSearch },
+      ],
+    },
+    {
+      title: 'Storage Intelligence',
+      items: [
+        { id: 'storage-analyzer', label: 'Storage Analyzer', icon: Sparkles },
+        { id: 'cleanup', label: 'Cleanup Center', icon: Trash2 },
+      ],
+    },
+    {
+      title: 'Processing',
+      items: [
+        { id: 'converter', label: 'Universal Converter', icon: Layers },
+        { id: 'bg-remover', label: 'Background Remover', icon: Eraser },
+        { id: 'compressor', label: 'File Compressor', icon: Minimize2 },
+        { id: 'archive', label: 'ZIP & Archive Manager', icon: Archive },
+        { id: 'batch', label: 'Batch Processing', icon: FolderKanban, count: batchCount },
+      ],
+    },
+    {
+      title: 'Presets',
+      items: [
+        { id: 'presets', label: 'My Presets', icon: Bookmark, count: presetsCount },
+        { id: 'workflow-builder', label: 'Workflow Builder', icon: Workflow },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        { id: 'history', label: 'Activity History', icon: Clock, count: historyCount },
+        { id: 'settings', label: 'Settings', icon: Settings },
+      ],
+    },
   ];
+
+  const renderNavButton = (item: NavItemDef, isMobile: boolean, isMini: boolean) => {
+    const Icon = item.icon;
+    const active = view === item.id;
+    return (
+      <GlassTooltip key={item.id} label={item.label} enabled={isMini}>
+        <button
+          type="button"
+          aria-label={item.label}
+          aria-current={active ? 'page' : undefined}
+          onClick={() => {
+            onNavigate(item.id);
+            if (isMobile) onCloseMobile();
+          }}
+          className={`relative w-full flex items-center ${
+            isMini ? 'justify-center px-0 py-2' : 'justify-between px-3 py-1.5'
+          } rounded-xl text-xs font-medium transition-colors cursor-pointer`}
+        >
+          {active && (
+            <motion.span
+              layoutId={isMobile ? 'sidebar-active-pill-mobile' : 'sidebar-active-pill'}
+              transition={SPRING_SNAPPY}
+              className="absolute inset-0 rounded-xl bg-zinc-900 dark:bg-white shadow-sm"
+            />
+          )}
+          <span
+            className={`relative z-10 inline-flex items-center ${
+              isMini ? 'justify-center' : 'gap-2.5 min-w-0'
+            } ${
+              active
+                ? 'text-white dark:text-black'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5 shrink-0" />
+            {!isMini && <span className="whitespace-nowrap truncate">{item.label}</span>}
+          </span>
+          {!isMini && typeof item.count === 'number' && item.count > 0 && (
+            <span
+              className={`relative z-10 font-mono text-[11px] tabular-nums ${
+                active ? 'text-white/80 dark:text-black/75' : 'text-[var(--text-secondary)]'
+              }`}
+            >
+              {item.count}
+            </span>
+          )}
+        </button>
+      </GlassTooltip>
+    );
+  };
 
   const renderNavContent = (isMobile: boolean) => {
     const isMini = collapsed && !isMobile;
@@ -95,7 +168,7 @@ export function LiquidSidebar({
       <div className="flex flex-col h-full select-none">
         {/* Brand + Collapse Control */}
         <div
-          className={`flex items-center ${
+          className={`flex items-center shrink-0 ${
             isMini ? 'flex-col gap-2.5 px-2 pt-3 pb-2' : 'justify-between px-3 pt-3 pb-2'
           }`}
         >
@@ -105,30 +178,15 @@ export function LiquidSidebar({
               onNavigate('dashboard');
               if (isMobile) onCloseMobile();
             }}
-            aria-label="Aether Convert Home"
+            aria-label="OmniFiles Home"
             className={`flex items-center gap-2.5 text-left cursor-pointer group ${
               isMini ? 'justify-center' : 'min-w-0'
             }`}
           >
             <div className="w-8 h-8 rounded-xl glass-interactive flex items-center justify-center shrink-0">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-                className="w-4 h-4 text-[var(--text-primary)]"
-              >
-                <path
-                  d="M12 3L20 18.5H4L12 3Z"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M8.5 13.5H15.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="w-4 h-4 text-[var(--text-primary)]">
+                <path d="M12 3L20 18.5H4L12 3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                <path d="M8.5 13.5H15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
             <AnimatePresence initial={false}>
@@ -140,7 +198,7 @@ export function LiquidSidebar({
                   transition={{ duration: 0.2, ease: MOTION_EASE }}
                   className="font-display text-sm font-semibold tracking-tight text-[var(--text-primary)] whitespace-nowrap truncate"
                 >
-                  Aether Convert
+                  OmniFiles
                 </motion.span>
               )}
             </AnimatePresence>
@@ -170,166 +228,21 @@ export function LiquidSidebar({
           )}
         </div>
 
-        {/* Workspace Group */}
-        <div className="px-2.5 pt-2">
-          {!isMini && (
-            <p className="px-2.5 pb-1.5 text-[11px] font-medium text-[var(--text-secondary)]">Workspace</p>
-          )}
-          <nav aria-label="Primary navigation" className="space-y-1">
-            {primaryNav.map((item) => {
-              const Icon = item.icon;
-              const active = view === item.id;
-              return (
-                <GlassTooltip
-                  key={item.id}
-                  label={`${item.label} (${item.shortcut})`}
-                  enabled={isMini}
-                >
-                  <button
-                    type="button"
-                    aria-label={item.label}
-                    aria-current={active ? 'page' : undefined}
-                    onClick={() => {
-                      onNavigate(item.id);
-                      if (isMobile) onCloseMobile();
-                    }}
-                    className={`relative w-full flex items-center ${
-                      isMini ? 'justify-center px-0 py-2.5' : 'justify-between px-3 py-2'
-                    } rounded-xl text-xs font-medium transition-colors cursor-pointer`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId={isMobile ? 'sidebar-active-pill-mobile' : 'sidebar-active-pill'}
-                        transition={SPRING_SNAPPY}
-                        className="absolute inset-0 rounded-xl bg-zinc-900 dark:bg-white shadow-sm"
-                      />
-                    )}
-                    <span
-                      className={`relative z-10 inline-flex items-center ${
-                        isMini ? 'justify-center' : 'gap-2.5 min-w-0'
-                      } ${
-                        active
-                          ? 'text-white dark:text-black'
-                          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 shrink-0" />
-                      {!isMini && <span className="whitespace-nowrap truncate">{item.label}</span>}
-                    </span>
-                    {!isMini && typeof item.count === 'number' && item.count > 0 && (
-                      <span
-                        className={`relative z-10 font-mono text-[11px] tabular-nums ${
-                          active ? 'text-white/80 dark:text-black/75' : 'text-[var(--text-secondary)]'
-                        }`}
-                      >
-                        {item.count}
-                      </span>
-                    )}
-                  </button>
-                </GlassTooltip>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Expandable Categories Group (Expanded Mode) */}
-        <div className="flex-1 min-h-0 flex flex-col px-2.5 pt-3 mt-3 border-t border-black/8 dark:border-white/10">
-          {!isMini ? (
-            <>
-              <button
-                type="button"
-                aria-expanded={categoriesOpen}
-                onClick={() => setCategoriesOpen((v) => !v)}
-                className="w-full px-2.5 py-1 flex items-center justify-between text-[11px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
-              >
-                <span>Categories ({CATEGORIES.length})</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    categoriesOpen ? 'rotate-0' : '-rotate-90'
-                  }`}
-                />
-              </button>
-
-              <AnimatePresence initial={false}>
-                {categoriesOpen && (
-                  <motion.div
-                    variants={ACCORDION_VARIANTS}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    className="flex-1 min-h-0 overflow-y-auto pr-0.5 mt-1 space-y-0.5"
-                  >
-                    {CATEGORIES.map((cat) => {
-                      const CatIcon = CATEGORY_ICONS[cat.id];
-                      const active = view === 'categories' && selectedCategory === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => {
-                            onSelectCategory(cat.id);
-                            if (isMobile) onCloseMobile();
-                          }}
-                          className={`relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs transition-[background-color] duration-150 cursor-pointer ${
-                            active
-                              ? 'bg-black/8 text-[var(--text-primary)] dark:bg-white/14 dark:text-white font-medium'
-                              : 'text-zinc-700 dark:text-[#C5C5C5] hover:text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/6'
-                          }`}
-                        >
-                          <CatIcon className="w-3.5 h-3.5 shrink-0 opacity-85" />
-                          <span className="truncate">{cat.label}</span>
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </>
-          ) : (
-            <div className="flex-1" />
-          )}
-        </div>
-
-        {/* System / Settings Group */}
-        <div className="px-2.5 pt-2.5 pb-3 mt-2 border-t border-black/8 dark:border-white/10 space-y-2 shrink-0">
-          <GlassTooltip label="Settings & Preferences (Alt+6)" enabled={isMini}>
-            <button
-              type="button"
-              aria-label="Settings"
-              aria-current={view === 'settings' ? 'page' : undefined}
-              onClick={() => {
-                onNavigate('settings');
-                if (isMobile) onCloseMobile();
-              }}
-              className={`relative w-full flex items-center ${
-                isMini ? 'justify-center px-0 py-2.5' : 'gap-2.5 px-3 py-2'
-              } rounded-xl text-xs font-medium transition-colors cursor-pointer`}
+        {/* Structured Multi-Section Navigation */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-2.5 pb-3 space-y-3">
+          {sections.map((section, idx) => (
+            <div
+              key={section.title}
+              className={idx > 0 ? 'pt-2.5 border-t border-black/8 dark:border-white/10' : 'pt-1'}
             >
-              {view === 'settings' && (
-                <motion.span
-                  layoutId={isMobile ? 'sidebar-active-pill-mobile' : 'sidebar-active-pill'}
-                  transition={SPRING_SNAPPY}
-                  className="absolute inset-0 rounded-xl bg-zinc-900 dark:bg-white shadow-sm"
-                />
+              {!isMini && (
+                <p className="px-2.5 pb-1 text-[11px] font-medium text-[var(--text-secondary)]">{section.title}</p>
               )}
-              <span
-                className={`relative z-10 inline-flex items-center gap-2.5 ${
-                  view === 'settings'
-                    ? 'text-white dark:text-black'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                <Settings className="w-4 h-4 shrink-0" />
-                {!isMini && <span>Settings</span>}
-              </span>
-            </button>
-          </GlassTooltip>
-
-          {!isMini && (
-            <div className="px-2.5 text-[11px] text-[var(--text-secondary)] tabular-nums">
-              {stats.full + stats.partial} Active Formats · {CATEGORIES.length} Engines
+              <nav aria-label={`${section.title} navigation`} className="space-y-0.5">
+                {section.items.map((item) => renderNavButton(item, isMobile, isMini))}
+              </nav>
             </div>
-          )}
+          ))}
         </div>
       </div>
     );
@@ -337,7 +250,6 @@ export function LiquidSidebar({
 
   return (
     <>
-      {/* Desktop Floating Liquid Glass Dock */}
       <motion.aside
         aria-label="Application Sidebar"
         data-collapsed={collapsed}
@@ -349,7 +261,6 @@ export function LiquidSidebar({
         {renderNavContent(false)}
       </motion.aside>
 
-      {/* Mobile Sliding Liquid Glass Drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">

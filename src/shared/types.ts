@@ -15,10 +15,35 @@ export type FormatCategory =
   | 'webdev'
   | 'scientific';
 
+export type NavView =
+  | 'dashboard'
+  | 'recent-activity'
+  | 'explorer'
+  | 'organizer'
+  | 'duplicates'
+  | 'large-files'
+  | 'renamer'
+  | 'inspector'
+  | 'storage-analyzer'
+  | 'cleanup'
+  | 'converter'
+  | 'bg-remover'
+  | 'compressor'
+  | 'archive'
+  | 'batch'
+  | 'presets'
+  | 'workflow-builder'
+  | 'history'
+  | 'settings';
+
+export type ToolKind = 'converter' | 'bg-remover' | 'compressor' | 'archive' | 'workflow';
+
 export type SupportLevel = 'full' | 'partial' | 'unavailable';
 
 export type EngineId =
   | 'imagemagick'
+  | 'sharp'
+  | 'imgly-isnet'
   | 'ghostscript'
   | 'ffmpeg'
   | 'document-node'
@@ -26,6 +51,7 @@ export type EngineId =
   | 'presentation-node'
   | 'ebook-node'
   | 'archive-node'
+  | '7zip-bin'
   | 'vector-node'
   | 'mesh3d-node'
   | 'font-node'
@@ -53,7 +79,7 @@ export interface FormatDefinition {
   compatibleOutputs: string[];
   recommendedOutputs: SmartRecommendation[];
   notes?: string;
-  operationKind?: 'conversion' | 'transpilation' | 'archive' | 'extraction';
+  operationKind?: 'conversion' | 'transpilation' | 'archive' | 'extraction' | 'compression' | 'segmentation';
 }
 
 export interface CategoryMeta {
@@ -71,7 +97,7 @@ export interface ConversionOptions {
   maintainAspect?: boolean;
   quality?: number;
   dpi?: number;
-  rotate?: number; // 0, 90, 180, 270
+  rotate?: number;
   flipHorizontal?: boolean;
   flipVertical?: boolean;
   stripMetadata?: boolean;
@@ -79,23 +105,23 @@ export interface ConversionOptions {
   grayscale?: boolean;
 
   // Audio / Video
-  bitrate?: string; // e.g. '192k', '320k', '2000k'
-  sampleRate?: number; // e.g. 44100, 48000
+  bitrate?: string;
+  sampleRate?: number;
   channels?: 1 | 2;
-  trimStart?: string; // HH:MM:SS or seconds
+  trimStart?: string;
   trimEnd?: string;
-  volume?: number; // 1.0 = normal
+  volume?: number;
   fadeInSec?: number;
   fadeOutSec?: number;
   fps?: number;
-  crf?: number; // 18-35
-  resolution?: string; // e.g. '1920x1080', '1280x720', 'original'
+  crf?: number;
+  resolution?: string;
   extractAudioOnly?: boolean;
   metaTitle?: string;
   metaArtist?: string;
 
   // Document / Spreadsheet / Presentation / Ebook
-  pageRange?: string; // e.g. '1-3'
+  pageRange?: string;
   pdfPassword?: string;
   compressLevel?: 'low' | 'medium' | 'high';
   sheetName?: string;
@@ -105,7 +131,7 @@ export interface ConversionOptions {
   ebookAuthor?: string;
 
   // Archive
-  archiveCompressionLevel?: number; // 1-9
+  archiveCompressionLevel?: number;
   archivePassword?: string;
 
   // Subtitle
@@ -117,6 +143,115 @@ export interface ConversionOptions {
   // Data & Webdev
   prettyPrint?: boolean;
   minify?: boolean;
+}
+
+export type BgBackgroundMode = 'transparent' | 'solid' | 'gradient' | 'blur' | 'custom';
+
+export interface BgRemovalOptions {
+  modelPrecision: 'fast' | 'high';
+  outputFormat: 'png' | 'webp';
+  quality: number;
+  featherRadius: number;
+  edgeRefinement: number;
+  backgroundMode: BgBackgroundMode;
+  backgroundColor: string;
+  gradientFrom: string;
+  gradientTo: string;
+  gradientAngle: number;
+  backgroundBlurRadius: number;
+  customBackgroundToken?: string;
+  shadowEnabled: boolean;
+  shadowOpacity: number;
+  shadowBlur: number;
+  subjectScale: number;
+  offsetX: number;
+  offsetY: number;
+  cropAspect: 'original' | '1:1' | '4:3' | '16:9' | '3:4';
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  maskOverlayDataUrl?: string;
+}
+
+export interface BgRemovalAnalysis {
+  foregroundCoveragePct: number;
+  semiTransparentEdgePct: number;
+  edgeComplexityLabel: 'clean' | 'moderate' | 'intricate';
+  subjectLossRisk: 'none' | 'low' | 'elevated';
+  qualityScoreLabel: string;
+  warnings: string[];
+  width: number;
+  height: number;
+  geminiInsights?: {
+    subjectSummary: string;
+    difficultEdgesDetected: string[];
+    recommendation: string;
+  };
+}
+
+export type CompressionGoal = 'balanced' | 'smallest' | 'best-quality' | 'lossless' | 'target-size';
+
+export interface CompressionOptions {
+  goal: CompressionGoal;
+  targetSizeKb?: number;
+  quality?: number;
+  maxWidth?: number;
+  stripMetadata?: boolean;
+  preserveDimensions?: boolean;
+  videoCodec?: 'libx264' | 'libvpx-vp9';
+  videoCrf?: number;
+  videoResolution?: string;
+  audioBitrate?: string;
+  audioSampleRate?: number;
+  pdfPreset?: 'screen' | 'ebook' | 'printer' | 'prepress';
+  archiveLevel?: number;
+}
+
+export interface CompressionStats {
+  originalBytes: number;
+  outputBytes: number;
+  savedBytes: number;
+  percentDelta: number;
+  durationMs: number;
+  strategyUsed: string;
+  targetAchieved?: boolean;
+}
+
+export interface ArchiveEntryMetadata {
+  name: string;
+  size: number;
+  compressedSize?: number;
+  isDirectory: boolean;
+  encrypted?: boolean;
+  crc?: string;
+  modifiedAt?: string;
+}
+
+export interface ArchiveInspectReport {
+  format: string;
+  engine: string;
+  fileSizeBytes: number;
+  entryCount: number;
+  totalUncompressedBytes: number;
+  compressionRatioPct: number;
+  hasEncryptedEntries: boolean;
+  duplicateGroups: { signature: string; names: string[]; size: number }[];
+  bombRiskWarning?: string;
+  entries: ArchiveEntryMetadata[];
+}
+
+export interface ArchiveFormatCapabilityRow {
+  ext: string;
+  name: string;
+  supportLevel: SupportLevel;
+  create: boolean;
+  extract: boolean;
+  inspect: boolean;
+  modify: boolean;
+  encrypt: boolean;
+  split: boolean;
+  engine: string;
+  notes?: string;
 }
 
 export interface IdentifiedFileMetadata {
@@ -141,26 +276,136 @@ export type JobStatus = 'queued' | 'processing' | 'completed' | 'failed' | 'canc
 
 export interface ConversionJob {
   id: string;
+  tool?: ToolKind;
   batchId?: string;
   originalName: string;
   sourceExt: string;
   targetExt: string;
-  category: FormatCategory;
-  operationKind: 'conversion' | 'transpilation' | 'archive' | 'extraction';
+  category: FormatCategory | 'ecosystem';
+  operationKind: 'conversion' | 'transpilation' | 'archive' | 'extraction' | 'compression' | 'segmentation';
   status: JobStatus;
   progress: number;
   inputSizeBytes: number;
   outputSizeBytes?: number;
   outputName?: string;
+  durationMs?: number;
   error?: string;
   engineUsed?: string;
   createdAt: string;
   completedAt?: string;
-  options: ConversionOptions;
+  options: ConversionOptions | Record<string, unknown>;
   previewKind?: IdentifiedFileMetadata['previewKind'];
   previewUrl?: string;
   downloadUrl?: string;
   details?: Record<string, string | number | boolean | string[]>;
+  compressionStats?: CompressionStats;
+  qualityMetrics?: BgRemovalAnalysis;
+}
+
+// ===========================================================================
+// WORKFLOW SEQUENCE BUILDER & EXPANDED PRESETS
+// ===========================================================================
+
+export type WorkflowOperationTool = 'bg-remover' | 'resize' | 'compress' | 'convert' | 'archive';
+
+export interface WorkflowStep {
+  id: string;
+  tool: WorkflowOperationTool;
+  operationName: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+}
+
+export interface WorkflowCompatibilityIssue {
+  stepIndex: number;
+  stepId: string;
+  severity: 'error' | 'warning';
+  message: string;
+  suggestion: string;
+  suggestedPatch?: {
+    config?: Record<string, unknown>;
+    disableStep?: boolean;
+  };
+}
+
+export type PresetKind = 'tool' | 'workflow' | 'batch';
+
+export interface PresetOutputRule {
+  namingPattern?: string;
+  destinationMode?: 'download-queue' | 'workspace-folder';
+  destinationFolder?: string;
+}
+
+export interface SavedPreset {
+  id: string;
+  name: string;
+  tool: ToolKind;
+  kind: PresetKind;
+  description: string;
+  categoryTag?: string;
+  createdAt: string;
+  updatedAt?: string;
+  lastUsedAt?: string;
+  useCount?: number;
+  outputRule?: PresetOutputRule;
+  batchSettings?: {
+    continueOnError?: boolean;
+  };
+  steps?: WorkflowStep[];
+  config: Record<string, unknown>;
+}
+
+// ===========================================================================
+// FILE MANAGEMENT & STORAGE INTELLIGENCE TYPES
+// ===========================================================================
+
+export interface WorkspaceFileEntry {
+  relPath: string;
+  name: string;
+  ext: string;
+  category: FormatCategory | 'unknown';
+  sizeBytes: number;
+  modifiedAt: string;
+  isDirectory: boolean;
+  sha256?: string;
+}
+
+export interface WorkspaceTreeSummary {
+  rootLabel: string;
+  totalFiles: number;
+  totalFolders: number;
+  totalBytes: number;
+  entries: WorkspaceFileEntry[];
+}
+
+export interface DuplicateGroup {
+  hash: string;
+  sizeBytes: number;
+  wastedBytes: number;
+  files: WorkspaceFileEntry[];
+}
+
+export interface StorageAnalysisReport {
+  workspaceBytes: number;
+  workspaceFiles: number;
+  duplicateWastedBytes: number;
+  duplicateGroupCount: number;
+  largeFilesBytes: number;
+  largeFileCount: number;
+  tempUploadBytes: number;
+  tempOutputBytes: number;
+  tempFileCount: number;
+  byCategory: { category: string; files: number; bytes: number; sharePct: number }[];
+  topFolders: { folder: string; files: number; bytes: number }[];
+}
+
+export interface ActivityEvent {
+  id: string;
+  kind: 'workflow' | 'batch' | 'organize' | 'cleanup' | 'rename' | 'conversion' | 'preset';
+  title: string;
+  detail: string;
+  timestamp: string;
+  status: 'completed' | 'failed' | 'cancelled';
 }
 
 export interface UserSettings {
@@ -171,9 +416,11 @@ export interface UserSettings {
   stripMetadataByDefault: boolean;
   retentionMinutes: number;
   maxUploadMb: number;
-  favoritePairs: string[]; // e.g. ['png->webp', 'mp4->gif']
+  favoritePairs: string[];
   recentFormats: string[];
   defaultOutputFormats?: Record<string, string>;
+  defaultNamingPattern?: string;
+  defaultDestinationFolder?: string;
 }
 
 export interface StorageStats {
@@ -182,4 +429,13 @@ export interface StorageStats {
   fileCount: number;
   retentionMinutes: number;
   lastCleanupAt: string | null;
+}
+
+export interface SystemResourceStats {
+  storage: StorageStats;
+  activeJobs: number;
+  totalJobs: number;
+  memoryRssMb: number;
+  uptimeSec: number;
+  engines: Record<string, boolean>;
 }
